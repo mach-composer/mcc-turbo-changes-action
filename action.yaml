@@ -1,0 +1,30 @@
+name: "The name of your action here"
+description: "Provide a description here"
+author: "Lab Digital"
+
+# Define your inputs here.
+inputs:
+  config:
+    description: "Inline configuration"
+    required: true
+  mcc_client_id:
+    description: "MACH Composer Client ID"
+    required: true
+  mcc_client_secret:
+    description: "MACH Composer Client Secret"
+    required: true
+  mcc_organization:
+    description: "MACH Composer Organization"
+    required: true
+  mcc_project:
+    description: "MACH Composer Project"
+    required: true
+
+# Define your outputs here.
+outputs:
+  changes:
+    description: "List of packages that have changed"
+
+runs:
+  using: node20
+  main: dist/index.js

@@ -1,0 +1,47 @@
+{
+  "name": "mcc-turbo-changes-action",
+  "description": "GitHub action which decides if a specific package (component) in a monorepo is modified and needs to be built and published ",
+  "version": "0.0.0",
+  "author": "Lab Digital",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/mach-composer/mcc-turbo-changes-action",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mach-composer/mcc-turbo-changes-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mach-composer/mcc-turbo-changes-action/issues"
+  },
+  "scripts": {
+    "build": "node ./esbuild.mjs",
+    "format": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --cache",
+    "format:fix": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --cache --log-level=warn"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1",
+    "client-oauth2": "^4.3.3",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.7",
+    "esbuild": "^0.19.5",
+    "prettier": "^3.0.3",
+    "tsx": "^3.14.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  }
+}
