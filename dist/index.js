@@ -17788,11 +17788,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issue("echo", enabled ? "on" : "off");
     }
     exports.setCommandEcho = setCommandEcho;
-    function setFailed3(message) {
+    function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
       error(message);
     }
-    exports.setFailed = setFailed3;
+    exports.setFailed = setFailed2;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -17805,10 +17805,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand("error", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
     exports.error = error;
-    function warning(message, properties = {}) {
+    function warning2(message, properties = {}) {
       command_1.issueCommand("warning", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports.warning = warning;
+    exports.warning = warning2;
     function notice(message, properties = {}) {
       command_1.issueCommand("notice", utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -34483,9 +34483,10 @@ var checkForChanges = async (pkgConfig, commitHash) => {
 var turboCheck = async (packageScope, commitHash) => {
   try {
     const exitCode = await exec.exec(
-      "npx turbo-ignore",
+      "./dist/turbo-ignore.cjs",
       [packageScope, `--fallback=${commitHash}`],
       {
+        cwd: process.cwd(),
         ignoreReturnCode: true,
         listeners: {
           stdline: (data) => {
@@ -34496,8 +34497,8 @@ var turboCheck = async (packageScope, commitHash) => {
     );
     return exitCode !== 0;
   } catch (error) {
-    core2.setFailed(`Action failed with error: ${error}`);
-    return false;
+    core2.warning(`Action failed with error: ${error}`);
+    return true;
   }
 };
 var gitCheck = async (paths, commitHash) => {
@@ -34518,7 +34519,8 @@ var gitCheck = async (paths, commitHash) => {
     );
     changed = output.trim() !== "";
   } catch (error) {
-    core2.setFailed(`Action failed with error: ${error}`);
+    core2.warning(`Action failed with error: ${error}`);
+    return true;
   }
   return changed;
 };
