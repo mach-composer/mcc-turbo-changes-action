@@ -17,6 +17,7 @@ export const checkForChanges = async (
   return false;
 };
 
+// Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
   commitHash: string,
@@ -38,11 +39,12 @@ export const turboCheck = async (
 
     return exitCode !== 0;
   } catch (error) {
-    core.setFailed(`Action failed with error: ${error}`);
-    return false;
+    core.warning(`Action failed with error: ${error}`);
+    return true;
   }
 };
 
+// Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[],
   commitHash: string,
@@ -69,7 +71,8 @@ export const gitCheck = async (
     // If output is not empty, it means there are file changes
     changed = output.trim() !== "";
   } catch (error) {
-    core.setFailed(`Action failed with error: ${error}`);
+    core.warning(`Action failed with error: ${error}`);
+    return true
   }
 
   return changed;
