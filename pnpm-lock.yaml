@@ -31,9 +31,6 @@ devDependencies:
   tsx:
     specifier: ^3.14.0
     version: 3.14.0
-  turbo-ignore:
-    specifier: 1.10.16
-    version: 1.10.16
   typescript:
     specifier: ^5.2.2
     version: 5.2.2
@@ -1007,11 +1004,6 @@ packages:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
     dev: false
-
-  /turbo-ignore@1.10.16:
-    resolution: {integrity: sha512-Xm2/pnXsunH2UQ3S92hQwRKiANNgXUhv2owqCFOmqwl3G2E+0yM2lSk+QLNYUu4XUqXkJrDv32GtZTDaPJ47vA==}
-    hasBin: true
-    dev: true
 
   /type-detect@4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}

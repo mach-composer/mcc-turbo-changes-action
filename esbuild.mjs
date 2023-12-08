@@ -16,5 +16,5 @@ await build({
 
 copyFileSync(
   "./node_modules/turbo-ignore/dist/cli.js",
-  "./dist/turbo-ignore.cjs"
+  "./dist/turbo-ignore.cjs",
 );
