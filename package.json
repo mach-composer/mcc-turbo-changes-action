@@ -40,7 +40,6 @@
     "@types/node": "^20.8.7",
     "esbuild": "^0.19.5",
     "prettier": "^3.0.3",
-    "turbo-ignore": "1.10.16",
     "tsx": "^3.14.0",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"

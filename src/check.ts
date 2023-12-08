@@ -4,7 +4,7 @@ import type { PackageConfig } from "./config";
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
-  commitHash: string,
+  commitHash: string
 ): Promise<boolean> => {
   if (await gitCheck(pkgConfig.extraFiles, commitHash)) {
     return true;
@@ -20,24 +20,19 @@ export const checkForChanges = async (
 // Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
-  commitHash: string,
+  commitHash: string
 ): Promise<boolean> => {
-  try {
-    const exitCode = await exec.exec(
-      "./dist/turbo-ignore.cjs",
-      [packageScope, `--fallback=${commitHash}`],
-      {
-        cwd: process.cwd(),
-        ignoreReturnCode: true,
-        listeners: {
-          stdline: (data: string) => {
-            core.info(data);
-          },
-        },
-      },
-    );
+  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
 
-    return exitCode !== 0;
+  try {
+    const { exitCode, stdout } = await exec.getExecOutput(command);
+    if (exitCode !== 0) {
+      core.warning(`Action failed with exit code: ${exitCode}`);
+      return true;
+    }
+
+    const data = JSON.parse(stdout);
+    return data.packages.includes(packageScope);
   } catch (error) {
     core.warning(`Action failed with error: ${error}`);
     return true;
@@ -47,7 +42,7 @@ export const turboCheck = async (
 // Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[],
-  commitHash: string,
+  commitHash: string
 ): Promise<boolean> => {
   let changed = false;
 
@@ -65,14 +60,14 @@ export const gitCheck = async (
     await exec.exec(
       "git",
       ["diff", "--name-only", commitHash, "HEAD", "--", ...paths],
-      options,
+      options
     );
 
     // If output is not empty, it means there are file changes
     changed = output.trim() !== "";
   } catch (error) {
     core.warning(`Action failed with error: ${error}`);
-    return true
+    return true;
   }
 
   return changed;
