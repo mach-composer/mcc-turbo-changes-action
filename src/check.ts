@@ -23,9 +23,14 @@ export const turboCheck = async (
   commitHash: string
 ): Promise<boolean> => {
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const options = {
+    listeners: {
+      stdout: (data: Buffer) => {},
+    },
+  };
 
   try {
-    const { exitCode, stdout } = await exec.getExecOutput(command);
+    const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
     if (exitCode !== 0) {
       core.warning(`Action failed with exit code: ${exitCode}`);
       return true;
