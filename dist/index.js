@@ -34480,19 +34480,35 @@ var checkForChanges = async (pkgConfig, commitHash) => {
   }
   return false;
 };
+var turboCache = /* @__PURE__ */ new Map();
 var turboCheck = async (packageScope, commitHash) => {
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
-  try {
-    const { exitCode, stdout } = await exec.getExecOutput(command);
-    if (exitCode !== 0) {
-      core2.warning(`Action failed with exit code: ${exitCode}`);
+  if (!turboCache.has(commitHash)) {
+    try {
+      const packages = await getTurboChangedPackages(commitHash);
+      turboCache.set(commitHash, packages);
+    } catch (error) {
+      core2.warning(`Action failed with error: ${error}`);
       return true;
     }
+  }
+  return turboCache.get(commitHash)?.includes(packageScope) ?? true;
+};
+var getTurboChangedPackages = async (commitHash) => {
+  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const options = {
+    listeners: {
+      stdout: (data) => {
+      }
+    }
+  };
+  try {
+    const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
+    if (exitCode !== 0) {
+    }
     const data = JSON.parse(stdout);
-    return data.packages.includes(packageScope);
+    return data.packages;
   } catch (error) {
-    core2.warning(`Action failed with error: ${error}`);
-    return true;
+    throw new Error(`Action failed with error: ${error}`);
   }
 };
 var gitCheck = async (paths, commitHash) => {
