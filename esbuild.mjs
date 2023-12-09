@@ -1,5 +1,4 @@
 import { build } from "esbuild";
-import { copyFileSync } from "fs";
 
 await build({
   entryPoints: ["./src/index.ts"],
@@ -14,7 +13,3 @@ await build({
   },
 });
 
-copyFileSync(
-  "./node_modules/turbo-ignore/dist/cli.js",
-  "./dist/turbo-ignore.cjs",
-);
