@@ -17,11 +17,29 @@ export const checkForChanges = async (
   return false;
 };
 
+const turboCache = new Map<string, string[]>();
+
 // Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
   commitHash: string
 ): Promise<boolean> => {
+  if (!turboCache.has(commitHash)) {
+    try {
+      const packages = await getTurboChangedPackages(commitHash);
+      turboCache.set(commitHash, packages);
+    } catch (error) {
+      core.warning(`Action failed with error: ${error}`);
+      return true;
+    }
+  }
+
+  return turboCache.get(commitHash)?.includes(packageScope) ?? true;
+};
+
+export const getTurboChangedPackages = async (
+  commitHash: string
+): Promise<string[]> => {
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options = {
     listeners: {
@@ -32,15 +50,12 @@ export const turboCheck = async (
   try {
     const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
     if (exitCode !== 0) {
-      core.warning(`Action failed with exit code: ${exitCode}`);
-      return true;
     }
 
     const data = JSON.parse(stdout);
-    return data.packages.includes(packageScope);
+    return data.packages;
   } catch (error) {
-    core.warning(`Action failed with error: ${error}`);
-    return true;
+    throw new Error(`Action failed with error: ${error}`);
   }
 };
 
