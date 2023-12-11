@@ -40,12 +40,14 @@ export async function run(): Promise<void> {
         : true;
 
       if (hasChanges) {
-        core.info(`Changes detected in ${pkgConfig.scope}`);
         result.push(pkgConfig.scope);
       }
     }
 
     core.setOutput("changes", result);
+    for (const scope of result) {
+      core.info(`Changes detected in ${scope}`);
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }
