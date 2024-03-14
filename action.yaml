@@ -4,6 +4,10 @@ author: "Lab Digital"
 
 # Define your inputs here.
 inputs:
+  branch:
+    description: "Git Branch to compare against"
+    default: "main"
+    required: false
   config:
     description: "Inline configuration"
     required: true
