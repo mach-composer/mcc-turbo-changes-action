@@ -57,6 +57,7 @@ export async function run(): Promise<void> {
 
 const readInputs = (): Inputs => {
   return {
+    branch: core.getInput("branch"),
     config: parseConfig(core.getInput("config")),
     mccClientID: core.getInput("mcc_client_id"),
     mccClientSecret: core.getInput("mcc_client_secret"),

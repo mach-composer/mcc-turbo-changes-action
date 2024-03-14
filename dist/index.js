@@ -34579,7 +34579,10 @@ async function run() {
     );
     for (const pkgConfig of inputs.config.packages) {
       core3.info(`Processing ${pkgConfig.name}`);
-      const commitHash = await client.getLatestVersion(pkgConfig.name, inputs.branch);
+      const commitHash = await client.getLatestVersion(
+        pkgConfig.name,
+        inputs.branch
+      );
       const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
       if (hasChanges) {
         core3.info(`Changes detected in ${pkgConfig.scope}`);
@@ -34594,6 +34597,7 @@ async function run() {
 }
 var readInputs = () => {
   return {
+    branch: core3.getInput("branch"),
     config: parseConfig(core3.getInput("config")),
     mccClientID: core3.getInput("mcc_client_id"),
     mccClientSecret: core3.getInput("mcc_client_secret"),
