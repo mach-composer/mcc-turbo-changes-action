@@ -34567,6 +34567,7 @@ var Client = class {
 async function run() {
   try {
     const inputs = readInputs();
+    const result = [];
     const client = new Client({
       clientID: inputs.mccClientID,
       clientSecret: inputs.mccClientSecret,
@@ -34576,23 +34577,18 @@ async function run() {
     core3.info(
       "Checking for changes: \n" + inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n")
     );
-    const changedPackages = await Promise.all(
-      inputs.config.packages.map(async (pkgConfig) => {
-        core3.info(`Processing ${pkgConfig.name}`);
-        const commitHash = await client.getLatestVersion(
-          pkgConfig.name,
-          inputs.branch
-        );
-        const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
-        if (hasChanges) {
-          core3.info(`Changes detected in ${pkgConfig.scope}`);
-          return pkgConfig.scope;
-        } else {
-          return null;
-        }
-      })
-    );
-    const result = changedPackages.filter((x) => x !== null);
+    for (const pkgConfig of inputs.config.packages) {
+      core3.info(`Processing ${pkgConfig.name}`);
+      const commitHash = await client.getLatestVersion(
+        pkgConfig.name,
+        inputs.branch
+      );
+      const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
+      if (hasChanges) {
+        core3.info(`Changes detected in ${pkgConfig.scope}`);
+        result.push(pkgConfig.scope);
+      }
+    }
     core3.setOutput("changes", result);
   } catch (error) {
     if (error instanceof Error)
