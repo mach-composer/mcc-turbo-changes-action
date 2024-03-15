@@ -34543,8 +34543,8 @@ var Client = class {
     this.token = token.accessToken;
     return this.token;
   };
-  getLatestVersion = async (component) => {
-    const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/versions`;
+  getLatestVersion = async (component, branch) => {
+    const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`;
     console.log("Request info from " + url);
     const response = await fetch(url, {
       headers: {
@@ -34556,10 +34556,10 @@ var Client = class {
       throw new Error("Failed to fetch latest version");
     }
     const result = await response.json();
-    if (!result.results.length) {
-      return null;
+    if (result && result.version) {
+      return result.version;
     }
-    return result.results[0].version;
+    return null;
   };
 };
 
@@ -34579,7 +34579,10 @@ async function run() {
     );
     for (const pkgConfig of inputs.config.packages) {
       core3.info(`Processing ${pkgConfig.name}`);
-      const commitHash = await client.getLatestVersion(pkgConfig.name);
+      const commitHash = await client.getLatestVersion(
+        pkgConfig.name,
+        inputs.branch
+      );
       const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
       if (hasChanges) {
         core3.info(`Changes detected in ${pkgConfig.scope}`);
@@ -34594,6 +34597,7 @@ async function run() {
 }
 var readInputs = () => {
   return {
+    branch: core3.getInput("branch"),
     config: parseConfig(core3.getInput("config")),
     mccClientID: core3.getInput("mcc_client_id"),
     mccClientSecret: core3.getInput("mcc_client_secret"),
