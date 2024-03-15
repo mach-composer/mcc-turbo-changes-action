@@ -26,8 +26,8 @@ export class Client {
     return this.token;
   };
 
-  public getLatestVersion = async (component: string) => {
-    const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/versions`;
+  public getLatestVersion = async (component: string, branch: string) => {
+    const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`;
     console.log("Request info from " + url);
 
     const response = await fetch(url, {
@@ -40,9 +40,9 @@ export class Client {
       throw new Error("Failed to fetch latest version");
     }
     const result = await response.json();
-    if (!result.results.length) {
-      return null;
+    if (result && result.version) {
+      return result.version;
     }
-    return result.results[0].version;
+    return null;
   };
 }

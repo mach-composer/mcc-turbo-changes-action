@@ -29,9 +29,9 @@ export class Client {
     return this.token;
   };
 
-  public getLatestVersion = async (component: string) => {
+  public getLatestVersion = async (component: string, branch: string) => {
     const response = await fetch(
-      `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/versions`,
+      `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`,
       {
         headers: {
           Authorization: `Bearer ${await this.getToken()}`,
@@ -39,13 +39,14 @@ export class Client {
       },
     );
     if (!response.ok) {
+      console.log(await response.text());
       throw new Error("Failed to fetch latest version");
     }
     const result = await response.json();
-    if (!result.results.length) {
-      return null;
+    if (result && result.version) {
+      return result.version;
     }
-    return result.results[0].version;
+    return null;
   };
 }
 
@@ -57,5 +58,5 @@ const client = new Client({
   project: "mach-commerce-accelerator",
 });
 
-const version = await client.getLatestVersion("page-resolver");
+const version = await client.getLatestVersion("page-resolver", "main");
 console.log(version);

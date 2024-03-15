@@ -4,6 +4,7 @@ import { checkForChanges } from "./check";
 import { Client } from "./mcc";
 
 type Inputs = {
+  branch: string;
   config: Config;
   mccClientID: string;
   mccClientSecret: string;
@@ -34,7 +35,10 @@ export async function run(): Promise<void> {
 
     for (const pkgConfig of inputs.config.packages) {
       core.info(`Processing ${pkgConfig.name}`);
-      const commitHash = await client.getLatestVersion(pkgConfig.name);
+      const commitHash = await client.getLatestVersion(
+        pkgConfig.name,
+        inputs.branch,
+      );
       const hasChanges = commitHash
         ? await checkForChanges(pkgConfig, commitHash)
         : true;
@@ -53,6 +57,7 @@ export async function run(): Promise<void> {
 
 const readInputs = (): Inputs => {
   return {
+    branch: core.getInput("branch"),
     config: parseConfig(core.getInput("config")),
     mccClientID: core.getInput("mcc_client_id"),
     mccClientSecret: core.getInput("mcc_client_secret"),
