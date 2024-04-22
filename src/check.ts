@@ -1,6 +1,7 @@
 import * as exec from "@actions/exec";
 import * as core from "@actions/core";
 import type { PackageConfig } from "./config";
+import stream from "stream";
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
@@ -40,11 +41,14 @@ export const turboCheck = async (
 export const getTurboChangedPackages = async (
   commitHash: string
 ): Promise<string[]> => {
+  const nullStream = new stream.Writable({
+    write(chunk: never, encoding: never, callback: never) {}
+  })
+
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
-  const options = {
-    listeners: {
-      stdout: (data: Buffer) => {},
-    },
+  const options: exec.ExecOptions = {
+    outStream: nullStream,
+    failOnStdErr: true,
   };
 
   try {
