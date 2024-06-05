@@ -23,7 +23,7 @@ export const turboCheck = async (
 ): Promise<boolean> => {
   try {
     const exitCode = await exec.exec(
-      "npx turbo-ignore",
+      "npx turbo-ignore@1",
       [packageScope, `--fallback=${commitHash}`],
       {
         ignoreReturnCode: true,
