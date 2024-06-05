@@ -34505,7 +34505,7 @@ var getTurboChangedPackages = async (commitHash) => {
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const command = `pnpm turbo@1 run build --filter="...[${commitHash}]" --dry=json`;
   const options = {
     outStream: nullStream,
     failOnStdErr: true
