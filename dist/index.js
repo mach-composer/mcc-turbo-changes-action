@@ -34483,7 +34483,7 @@ var checkForChanges = async (pkgConfig, commitHash) => {
 var turboCheck = async (packageScope, commitHash) => {
   try {
     const exitCode = await exec.exec(
-      "npx turbo-ignore",
+      "npx turbo-ignore@1",
       [packageScope, `--fallback=${commitHash}`],
       {
         ignoreReturnCode: true,
