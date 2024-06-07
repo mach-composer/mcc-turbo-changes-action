@@ -5,7 +5,7 @@ import stream from "stream";
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
-  commitHash: string
+  commitHash: string,
 ): Promise<boolean> => {
   if (await gitCheck(pkgConfig.extraFiles, commitHash)) {
     return true;
@@ -23,7 +23,7 @@ const turboCache = new Map<string, string[]>();
 // Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
-  commitHash: string
+  commitHash: string,
 ): Promise<boolean> => {
   if (!turboCache.has(commitHash)) {
     try {
@@ -37,19 +37,23 @@ export const turboCheck = async (
 
   const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
   if (hasChanges) {
-    core.info(`Turbo detected changes for package ${packageScope} since ${commitHash}`);
+    core.info(
+      `Turbo detected changes for package ${packageScope} since ${commitHash}`,
+    );
   } else {
-    core.info(`Turbo did not detect changes for package ${packageScope} since ${commitHash}`);
+    core.info(
+      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`,
+    );
   }
-  return hasChanges
+  return hasChanges;
 };
 
 export const getTurboChangedPackages = async (
-  commitHash: string
+  commitHash: string,
 ): Promise<string[]> => {
   const nullStream = new stream.Writable({
-    write(chunk: never, encoding: never, callback: never) {}
-  })
+    write(chunk: never, encoding: never, callback: never) {},
+  });
 
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options: exec.ExecOptions = {
@@ -72,7 +76,7 @@ export const getTurboChangedPackages = async (
 // Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[] | undefined,
-  commitHash: string
+  commitHash: string,
 ): Promise<boolean> => {
   let changed = false;
 
@@ -90,7 +94,7 @@ export const gitCheck = async (
     await exec.exec(
       "git",
       ["diff", "--name-only", commitHash, "HEAD", "--", ...(paths || [])],
-      options
+      options,
     );
 
     // If output is not empty, it means there are file changes

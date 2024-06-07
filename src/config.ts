@@ -13,7 +13,7 @@ export type PackageConfig = {
 export type PackageConfigInput = {
   name: string;
   scope: string;
-  "extra-files": string[];
+  "extra-files"?: string[];
 };
 
 export const parseConfig = (config: string): Config => {

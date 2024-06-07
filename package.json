@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc && node ./esbuild.mjs",
     "format": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --cache",
-    "format:fix": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --cache --log-level=warn"
+    "format:fix": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --cache --log-level=warn",
+    "test": "vitest"
   },
   "keywords": [
     "actions",
