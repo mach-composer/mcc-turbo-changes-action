@@ -34494,9 +34494,13 @@ var turboCheck = async (packageScope, commitHash) => {
   }
   const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
   if (hasChanges) {
-    core2.info(`Turbo detected changes for package ${packageScope} since ${commitHash}`);
+    core2.info(
+      `Turbo detected changes for package ${packageScope} since ${commitHash}`
+    );
   } else {
-    core2.info(`Turbo did not detect changes for package ${packageScope} since ${commitHash}`);
+    core2.info(
+      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`
+    );
   }
   return hasChanges;
 };
@@ -34533,7 +34537,7 @@ var gitCheck = async (paths, commitHash) => {
     };
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths],
+      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths || []],
       options
     );
     changed = output.trim() !== "";
