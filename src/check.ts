@@ -35,7 +35,13 @@ export const turboCheck = async (
     }
   }
 
-  return turboCache.get(commitHash)?.includes(packageScope) ?? true;
+  const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
+  if (hasChanges) {
+    core.info(`Turbo detected changes for package ${packageScope} since ${commitHash}`);
+  } else {
+    core.info(`Turbo did not detect changes for package ${packageScope} since ${commitHash}`);
+  }
+  return hasChanges
 };
 
 export const getTurboChangedPackages = async (
