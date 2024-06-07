@@ -34473,7 +34473,7 @@ var exec = __toESM(require_exec(), 1);
 var core2 = __toESM(require_core(), 1);
 import stream from "stream";
 var checkForChanges = async (pkgConfig, commitHash) => {
-  if (await gitCheck(pkgConfig.extraFiles, commitHash)) {
+  if (pkgConfig.extraFiles?.length && await gitCheck(pkgConfig.extraFiles, commitHash)) {
     return true;
   }
   if (await turboCheck(pkgConfig.scope, commitHash)) {
