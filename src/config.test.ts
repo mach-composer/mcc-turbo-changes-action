@@ -1,4 +1,4 @@
-import { it } from "vitest";
+import { it, expect } from "vitest";
 import { Config, parseConfig } from "./config";
 
 it("should parse config", () => {
@@ -11,9 +11,6 @@ it("should parse config", () => {
 
     "@commerce-backend/checkout":
       name: checkout
-      extra-files:
-        - backend/Dockerfile.node
-        - backend/services/checkout/terraform/*
   `;
 
   const config = parseConfig(input);
@@ -30,11 +27,10 @@ it("should parse config", () => {
       {
         name: "checkout",
         scope: "@commerce-backend/checkout",
-        extraFiles: [
-          "backend/Dockerfile.node",
-          "backend/services/checkout/terraform/*",
-        ],
+        extraFiles: undefined,
       },
     ],
   };
+
+  expect(config).toEqual(expected);
 });
