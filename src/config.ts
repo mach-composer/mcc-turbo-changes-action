@@ -7,7 +7,7 @@ export type Config = {
 export type PackageConfig = {
   name: string;
   scope: string;
-  extraFiles: string[];
+  extraFiles?: string[];
 };
 
 export type PackageConfigInput = {

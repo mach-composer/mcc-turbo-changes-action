@@ -71,7 +71,7 @@ export const getTurboChangedPackages = async (
 
 // Returns true if there are changes according to git
 export const gitCheck = async (
-  paths: string[],
+  paths: string[] | undefined,
   commitHash: string
 ): Promise<boolean> => {
   let changed = false;
@@ -89,7 +89,7 @@ export const gitCheck = async (
     // Run the git diff command to get the list of files changed since the given commit hash
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths],
+      ["diff", "--name-only", commitHash, "HEAD", "--", ...(paths || [])],
       options
     );
 
