@@ -7,7 +7,10 @@ export const checkForChanges = async (
   pkgConfig: PackageConfig,
   commitHash: string,
 ): Promise<boolean> => {
-  if (await gitCheck(pkgConfig.extraFiles, commitHash)) {
+  if (
+    pkgConfig.extraFiles?.length &&
+    (await gitCheck(pkgConfig.extraFiles, commitHash))
+  ) {
     return true;
   }
 
