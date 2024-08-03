@@ -34511,6 +34511,13 @@ var getTurboChangedPackages = async (commitHash) => {
   });
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options = {
+    env: {
+      TURBO_TELEMETRY_DISABLED: "1",
+      // disable printing telemetry message which breaks the json output
+      TURBO_PRINT_VERSION_DISABLED: "1",
+      // disable printing turbo version which breaks the json output
+      ...process.env
+    },
     outStream: nullStream,
     failOnStdErr: true
   };
