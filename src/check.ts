@@ -60,6 +60,10 @@ export const getTurboChangedPackages = async (
 
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options: exec.ExecOptions = {
+    env: {
+      TURBO_PRINT_VERSION_DISABLED: '1',
+      ...process.env
+    },
     outStream: nullStream,
     failOnStdErr: true,
   };
