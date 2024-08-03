@@ -61,7 +61,8 @@ export const getTurboChangedPackages = async (
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
-      TURBO_PRINT_VERSION_DISABLED: '1',
+      TURBO_TELEMETRY_DISABLED: '1', // disable printing telemetry message which breaks the json output
+      TURBO_PRINT_VERSION_DISABLED: '1', // disable printing turbo version which breaks the json output
       ...process.env
     },
     outStream: nullStream,
