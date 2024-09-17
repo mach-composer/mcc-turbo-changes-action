@@ -10,6 +10,7 @@ type Inputs = {
   mccClientSecret: string;
   mccOrganization: string;
   mccProject: string;
+  fallbackReference?: string;
 };
 
 /**
@@ -30,18 +31,30 @@ export async function run(): Promise<void> {
 
     core.info(
       "Checking for changes: \n" +
-        inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n"),
+        inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n")
     );
 
     for (const pkgConfig of inputs.config.packages) {
       core.info(`Processing ${pkgConfig.name}`);
       const commitHash = await client.getLatestVersion(
         pkgConfig.name,
-        inputs.branch,
+        inputs.branch
       );
-      const hasChanges = commitHash
-        ? await checkForChanges(pkgConfig, commitHash)
-        : true;
+
+      let hasChanges = false;
+
+      if (commitHash) {
+        hasChanges = await checkForChanges(pkgConfig, commitHash);
+      } else if (
+        inputs.fallbackReference &&
+        inputs.fallbackReference != inputs.branch
+      ) {
+        // Compare against main
+        hasChanges = await checkForChanges(pkgConfig, inputs.fallbackReference);
+      } else {
+        // Consider this a new package
+        hasChanges = true;
+      }
 
       if (hasChanges) {
         result.push(pkgConfig.scope);
@@ -65,5 +78,6 @@ const readInputs = (): Inputs => {
     mccClientSecret: core.getInput("mcc_client_secret"),
     mccOrganization: core.getInput("mcc_organization"),
     mccProject: core.getInput("mcc_project"),
+    fallbackReference: core.getInput("fallback_reference"),
   };
 };

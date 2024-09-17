@@ -23,6 +23,10 @@ inputs:
   mcc_project:
     description: "MACH Composer Project"
     required: true
+  fallback_reference:
+    description: "Fallback git reference to compare against (useful for hotfix branches)"
+    required: false
+    default: ""
 
 # Define your outputs here.
 outputs:
