@@ -49,7 +49,8 @@ export async function run(): Promise<void> {
         inputs.fallbackReference &&
         inputs.fallbackReference != inputs.branch
       ) {
-        // Compare against main
+        // When a fallback reference is given (this can be branch name, a commit or a git tag),
+        // we can check for changes using this reference instead.
         hasChanges = await checkForChanges(pkgConfig, inputs.fallbackReference);
       } else {
         // Consider this a new package
