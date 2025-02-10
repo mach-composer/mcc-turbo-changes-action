@@ -34473,36 +34473,38 @@ var exec = __toESM(require_exec(), 1);
 var core2 = __toESM(require_core(), 1);
 import stream from "stream";
 var checkForChanges = async (pkgConfig, commitHash) => {
-  if (pkgConfig.extraFiles?.length && await gitCheck(pkgConfig.extraFiles, commitHash)) {
-    return true;
+  const packages = await turboCheck(pkgConfig.scope, commitHash);
+  if (packages.includes(pkgConfig.name)) {
+    return packages;
   }
-  if (await turboCheck(pkgConfig.scope, commitHash)) {
-    return true;
+  if (pkgConfig.extraFiles?.length) {
+    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
+    if (hasChanges) {
+      return [pkgConfig.name];
+    }
   }
-  return false;
+  return [];
 };
 var turboCache = /* @__PURE__ */ new Map();
 var turboCheck = async (packageScope, commitHash) => {
   if (!turboCache.has(commitHash)) {
     try {
-      const packages = await getTurboChangedPackages(commitHash);
-      turboCache.set(commitHash, packages);
+      const packages2 = await getTurboChangedPackages(commitHash);
+      turboCache.set(commitHash, packages2);
     } catch (error) {
       core2.warning(`Action failed with error: ${error}`);
-      return true;
+      return [packageScope];
     }
   }
-  const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
-  if (hasChanges) {
+  const packages = turboCache.get(commitHash) ?? [];
+  if (packages.length > 0) {
     core2.info(
-      `Turbo detected changes for package ${packageScope} since ${commitHash}`
+      `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
     );
   } else {
-    core2.info(
-      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`
-    );
+    core2.info(`Turbo did not detect changes since ${commitHash}`);
   }
-  return hasChanges;
+  return packages;
 };
 var getTurboChangedPackages = async (commitHash) => {
   const nullStream = new stream.Writable({
@@ -34615,9 +34617,11 @@ async function run() {
         pkgConfig.name,
         inputs.branch
       );
-      const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
-      if (hasChanges) {
-        result.push(pkgConfig.scope);
+      const affectedPackages = commitHash ? await checkForChanges(pkgConfig, commitHash) : [];
+      for (const pkg of affectedPackages) {
+        if (!result.includes(pkg)) {
+          result.push(pkg);
+        }
       }
     }
     core3.setOutput("changes", result);

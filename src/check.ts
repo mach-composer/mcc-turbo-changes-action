@@ -6,49 +6,47 @@ import stream from "stream";
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
   commitHash: string,
-): Promise<boolean> => {
-  if (
-    pkgConfig.extraFiles?.length &&
-    (await gitCheck(pkgConfig.extraFiles, commitHash))
-  ) {
-    return true;
+): Promise<string[]> => {
+  const packages = await turboCheck(pkgConfig.scope, commitHash);
+  if (packages.includes(pkgConfig.name)) {
+    return packages
   }
 
-  if (await turboCheck(pkgConfig.scope, commitHash)) {
-    return true;
+  if (pkgConfig.extraFiles?.length) {
+    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
+    if (hasChanges) {
+      return [pkgConfig.name]
+    }
   }
-
-  return false;
+  return []
 };
 
 const turboCache = new Map<string, string[]>();
 
-// Return true if there are changes according to turbo-ignore
+// Return a list of package names that are modified since the given commitHash
 export const turboCheck = async (
   packageScope: string,
   commitHash: string,
-): Promise<boolean> => {
+): Promise<string[]> => {
   if (!turboCache.has(commitHash)) {
     try {
       const packages = await getTurboChangedPackages(commitHash);
       turboCache.set(commitHash, packages);
     } catch (error) {
       core.warning(`Action failed with error: ${error}`);
-      return true;
+      return [packageScope]
     }
   }
 
-  const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
-  if (hasChanges) {
+  const packages = turboCache.get(commitHash) ?? []
+  if (packages.length > 0) {
     core.info(
-      `Turbo detected changes for package ${packageScope} since ${commitHash}`,
+      `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`,
     );
   } else {
-    core.info(
-      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`,
-    );
+    core.info(`Turbo did not detect changes since ${commitHash}`);
   }
-  return hasChanges;
+  return packages;
 };
 
 export const getTurboChangedPackages = async (
