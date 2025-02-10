@@ -54,6 +54,6 @@ describe("gitCheck", () => {
 
   it("should pass turbocheck", async () => {
     const result = await turboCheck("foo", "d9203bb9");
-    expect(result).toBe(true);
+    expect(result).toEqual(["foo"]);
   });
 });

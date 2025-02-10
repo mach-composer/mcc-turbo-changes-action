@@ -39,12 +39,15 @@ export async function run(): Promise<void> {
         pkgConfig.name,
         inputs.branch,
       );
-      const hasChanges = commitHash
-        ? await checkForChanges(pkgConfig, commitHash)
-        : true;
 
-      if (hasChanges) {
-        result.push(pkgConfig.scope);
+      const affectedPackages = commitHash
+        ? await checkForChanges(pkgConfig, commitHash)
+        : [];
+
+      for (const pkg of affectedPackages) {
+        if (!result.includes(pkg)) {
+          result.push(pkg);
+        }
       }
     }
 
