@@ -53,7 +53,7 @@ export async function run(): Promise<void> {
 
     core.setOutput("changes", result);
     for (const scope of result) {
-      core.info(`Changes detected in ${scope}`);
+      core.info(`Changes detected for ${scope}`);
     }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);

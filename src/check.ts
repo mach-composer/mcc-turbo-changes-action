@@ -17,7 +17,7 @@ export const checkForChanges = async (
   if (pkgConfig.extraFiles?.length) {
     const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
     if (hasChanges) {
-      return [pkgConfig.name]
+      return [pkgConfig.scope]
     }
   }
   return []
