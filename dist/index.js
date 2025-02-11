@@ -34480,7 +34480,7 @@ var checkForChanges = async (pkgConfig, commitHash) => {
   if (pkgConfig.extraFiles?.length) {
     const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
     if (hasChanges) {
-      return [pkgConfig.name];
+      return [pkgConfig.scope];
     }
   }
   return [];
@@ -34628,7 +34628,7 @@ async function run() {
     }
     core3.setOutput("changes", result);
     for (const scope of result) {
-      core3.info(`Changes detected in ${scope}`);
+      core3.info(`Changes detected for ${scope}`);
     }
   } catch (error) {
     if (error instanceof Error)
