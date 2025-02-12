@@ -34474,16 +34474,16 @@ var core2 = __toESM(require_core(), 1);
 import stream from "stream";
 var checkForChanges = async (pkgConfig, commitHash) => {
   const packages = await turboCheck(pkgConfig.scope, commitHash);
-  if (packages.includes(pkgConfig.name)) {
+  if (packages.includes(pkgConfig.scope)) {
     return packages;
   }
   if (pkgConfig.extraFiles?.length) {
     const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
     if (hasChanges) {
-      return [pkgConfig.scope];
+      packages.push(pkgConfig.scope);
     }
   }
-  return [];
+  return packages;
 };
 var turboCache = /* @__PURE__ */ new Map();
 var turboCheck = async (packageScope, commitHash) => {
