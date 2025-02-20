@@ -11,16 +11,16 @@ export const checkForChanges = async (
 ): Promise<string[]> => {
   const packages = await turboCheck(pkgConfig.scope, commitHash);
   if (packages.includes(pkgConfig.scope)) {
-    return packages
+    return [pkgConfig.scope]
   }
 
   if (pkgConfig.extraFiles?.length) {
     const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
     if (hasChanges) {
-      packages.push(pkgConfig.scope);
+      return [pkgConfig.scope]
     }
   }
-  return packages
+  return []
 };
 
 const turboCache = new Map<string, string[]>();
