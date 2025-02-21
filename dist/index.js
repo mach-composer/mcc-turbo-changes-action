@@ -34485,28 +34485,38 @@ var checkForChanges = async (pkgConfig, commitHash) => {
   }
   return [];
 };
-var turboCache = /* @__PURE__ */ new Map();
+var turboPlanCache = /* @__PURE__ */ new Map();
 var turboCheck = async (packageScope, commitHash) => {
-  if (!turboCache.has(commitHash)) {
-    try {
-      const packages2 = await getTurboChangedPackages(commitHash);
-      turboCache.set(commitHash, packages2);
-    } catch (error) {
-      core2.warning(`Action failed with error: ${error}`);
-      return [packageScope];
+  try {
+    const packages = await getTurboChangedPackages(commitHash, packageScope);
+    if (packages.length > 0) {
+      core2.info(
+        `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
+      );
     }
+    return packages;
+  } catch (error) {
+    core2.warning(`Action failed with error: ${error}`);
+    return [packageScope];
   }
-  const packages = turboCache.get(commitHash) ?? [];
-  if (packages.length > 0) {
-    core2.info(
-      `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
-    );
-  } else {
-    core2.info(`Turbo did not detect changes since ${commitHash}`);
-  }
-  return packages;
 };
-var getTurboChangedPackages = async (commitHash) => {
+var getTurboChangedPackages = async (commitHash, packageScope) => {
+  const plan = await getTurboPlan(commitHash);
+  if (!plan.packages.includes(packageScope)) {
+    return [];
+  }
+  const task = plan.tasks.find((task2) => task2.package === packageScope);
+  if (!task) {
+    return [packageScope];
+  }
+  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]);
+  return [packageScope, ...dependencies];
+};
+var getTurboPlan = async (commitHash) => {
+  const cachedPlan = turboPlanCache.get(commitHash);
+  if (cachedPlan) {
+    return cachedPlan;
+  }
   const nullStream = new stream.Writable({
     write(chunk, encoding, callback) {
     }
@@ -34529,8 +34539,8 @@ var getTurboChangedPackages = async (commitHash) => {
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
     const data = JSON.parse(stdout);
-    const packages = data.packages;
-    return packages.filter((pkg) => pkg !== "//");
+    turboPlanCache.set(commitHash, data);
+    return data;
   } catch (error) {
     throw new Error(`Action failed with error: ${error}`);
   }

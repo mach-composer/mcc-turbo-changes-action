@@ -4,6 +4,14 @@ import type { PackageConfig } from "./config";
 import stream from "stream";
 
 
+type TurboPlan = {
+  packages: string[]
+  tasks: {
+    package: string;
+    dependencies: string[];
+  }[]
+}
+
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
@@ -23,37 +31,56 @@ export const checkForChanges = async (
   return []
 };
 
-const turboCache = new Map<string, string[]>();
+const turboPlanCache = new Map<string, TurboPlan>();
 
 // Return a list of package names that are modified since the given commitHash
 export const turboCheck = async (
   packageScope: string,
   commitHash: string,
 ): Promise<string[]> => {
-  if (!turboCache.has(commitHash)) {
-    try {
-      const packages = await getTurboChangedPackages(commitHash);
-      turboCache.set(commitHash, packages);
-    } catch (error) {
-      core.warning(`Action failed with error: ${error}`);
-      return [packageScope]
+  try {
+    const packages = await getTurboChangedPackages(commitHash, packageScope);
+    if (packages.length > 0) {
+      core.info(
+        `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`,
+      );
     }
+    return packages;
+  } catch (error) {
+    core.warning(`Action failed with error: ${error}`);
+    return [packageScope]
   }
-
-  const packages = turboCache.get(commitHash) ?? []
-  if (packages.length > 0) {
-    core.info(
-      `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`,
-    );
-  } else {
-    core.info(`Turbo did not detect changes since ${commitHash}`);
-  }
-  return packages;
 };
 
 export const getTurboChangedPackages = async (
   commitHash: string,
+  packageScope: string,
 ): Promise<string[]> => {
+  const plan = await getTurboPlan(commitHash);
+
+  if (!plan.packages.includes(packageScope)) {
+    return [];
+  }
+
+  const task = plan.tasks.find((task) => task.package === packageScope);
+  if (!task) {
+    return [packageScope];
+  }
+
+  // TODO: need to check if we need to do this recursively
+  const dependencies = task.dependencies.map((dep) => dep.split("#")[0])
+  return [packageScope, ...dependencies];
+};
+
+
+export const getTurboPlan = async (
+  commitHash: string,
+): Promise<TurboPlan> => {
+  const cachedPlan = turboPlanCache.get(commitHash);
+  if (cachedPlan) {
+    return cachedPlan;
+  }
+
   const nullStream = new stream.Writable({
     write(chunk: never, encoding: never, callback: never) {},
   });
@@ -75,11 +102,9 @@ export const getTurboChangedPackages = async (
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
 
-    const data = JSON.parse(stdout);
-    const packages: string[] = data.packages;
-
-    // Ignore the root package
-    return packages.filter((pkg: string) => pkg !== "//");
+    const data = JSON.parse(stdout) as TurboPlan
+    turboPlanCache.set(commitHash, data )
+    return data
   } catch (error) {
     throw new Error(`Action failed with error: ${error}`);
   }
