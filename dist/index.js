@@ -34502,14 +34502,15 @@ var turboCheck = async (packageScope, commitHash) => {
 };
 var getTurboChangedPackages = async (commitHash, packageScope) => {
   const plan = await getTurboPlan(commitHash);
-  if (!plan.packages.includes(packageScope)) {
+  const affectedPackages = new Set(plan.packages);
+  if (!affectedPackages.has(packageScope)) {
     return [];
   }
   const task = plan.tasks.find((task2) => task2.package === packageScope);
   if (!task) {
     return [packageScope];
   }
-  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]);
+  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
   return [packageScope, ...dependencies];
 };
 var getTurboPlan = async (commitHash) => {

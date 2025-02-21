@@ -57,8 +57,9 @@ export const getTurboChangedPackages = async (
   packageScope: string,
 ): Promise<string[]> => {
   const plan = await getTurboPlan(commitHash);
+  const affectedPackages = new Set<string>(plan.packages);
 
-  if (!plan.packages.includes(packageScope)) {
+  if (!affectedPackages.has(packageScope)) {
     return [];
   }
 
@@ -68,7 +69,8 @@ export const getTurboChangedPackages = async (
   }
 
   // TODO: need to check if we need to do this recursively
-  const dependencies = task.dependencies.map((dep) => dep.split("#")[0])
+  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
+
   return [packageScope, ...dependencies];
 };
 
@@ -143,3 +145,19 @@ export const gitCheck = async (
 
   return changed;
 };
+
+/**
+ * Returns the intersection of two sets.
+ *
+ * Note that Node 22 has this built-in, see
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
+ */
+function intersectSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+	const intersection = new Set<T>();
+	for (const item of set1) {
+		if (set2.has(item)) {
+			intersection.add(item);
+		}
+	}
+	return intersection;
+}
