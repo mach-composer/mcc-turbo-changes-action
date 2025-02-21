@@ -18,8 +18,8 @@ export const checkForChanges = async (
   commitHash: string,
 ): Promise<string[]> => {
   const packages = await turboCheck(pkgConfig.scope, commitHash);
-  if (packages.includes(pkgConfig.scope)) {
-    return [pkgConfig.scope]
+  if (packages.length > 0) {
+    return packages;
   }
 
   if (pkgConfig.extraFiles?.length) {
