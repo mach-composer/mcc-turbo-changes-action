@@ -34472,44 +34472,44 @@ var parseConfig = (config) => {
 var exec = __toESM(require_exec(), 1);
 var core2 = __toESM(require_core(), 1);
 import stream from "stream";
-var checkForChanges = async (pkgConfig, commitHash) => {
-  if (pkgConfig.extraFiles?.length && await gitCheck(pkgConfig.extraFiles, commitHash)) {
+var checkForChanges = async (pkgConfig, commit) => {
+  if (pkgConfig.extraFiles?.length && await gitCheck(pkgConfig.extraFiles, commit)) {
     return true;
   }
-  if (await turboCheck(pkgConfig.scope, commitHash)) {
+  if (await turboCheck(pkgConfig.scope, commit)) {
     return true;
   }
   return false;
 };
 var turboCache = /* @__PURE__ */ new Map();
-var turboCheck = async (packageScope, commitHash) => {
-  if (!turboCache.has(commitHash)) {
+var turboCheck = async (packageScope, commit) => {
+  if (!turboCache.has(commit)) {
     try {
-      const packages = await getTurboChangedPackages(commitHash);
-      turboCache.set(commitHash, packages);
+      const packages = await getTurboChangedPackages(commit);
+      turboCache.set(commit, packages);
     } catch (error) {
       core2.warning(`Action failed with error: ${error}`);
       return true;
     }
   }
-  const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
+  const hasChanges = turboCache.get(commit)?.includes(packageScope) ?? true;
   if (hasChanges) {
     core2.info(
-      `Turbo detected changes for package ${packageScope} since ${commitHash}`
+      `Turbo detected changes for package ${packageScope} since ${commit}`
     );
   } else {
     core2.info(
-      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`
+      `Turbo did not detect changes for package ${packageScope} since ${commit}`
     );
   }
   return hasChanges;
 };
-var getTurboChangedPackages = async (commitHash) => {
+var getTurboChangedPackages = async (commit) => {
   const nullStream = new stream.Writable({
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
   const options = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1",
@@ -34531,7 +34531,7 @@ var getTurboChangedPackages = async (commitHash) => {
     throw new Error(`Action failed with error: ${error}`);
   }
 };
-var gitCheck = async (paths, commitHash) => {
+var gitCheck = async (paths, commit) => {
   let changed = false;
   try {
     let output = "";
@@ -34544,7 +34544,7 @@ var gitCheck = async (paths, commitHash) => {
     };
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths || []],
+      ["diff", "--name-only", commit, "HEAD", "--", ...paths || []],
       options
     );
     changed = output.trim() !== "";
@@ -34615,7 +34615,14 @@ async function run() {
         pkgConfig.name,
         inputs.branch
       );
-      const hasChanges = commitHash ? await checkForChanges(pkgConfig, commitHash) : true;
+      let hasChanges = false;
+      if (commitHash) {
+        hasChanges = await checkForChanges(pkgConfig, commitHash);
+      } else if (inputs.fallbackReference && inputs.fallbackReference != inputs.branch) {
+        hasChanges = await checkForChanges(pkgConfig, inputs.fallbackReference);
+      } else {
+        hasChanges = true;
+      }
       if (hasChanges) {
         result.push(pkgConfig.scope);
       }
@@ -34636,7 +34643,8 @@ var readInputs = () => {
     mccClientID: core3.getInput("mcc_client_id"),
     mccClientSecret: core3.getInput("mcc_client_secret"),
     mccOrganization: core3.getInput("mcc_organization"),
-    mccProject: core3.getInput("mcc_project")
+    mccProject: core3.getInput("mcc_project"),
+    fallbackReference: core3.getInput("fallback_reference")
   };
 };
 

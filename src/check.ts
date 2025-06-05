@@ -3,18 +3,24 @@ import * as core from "@actions/core";
 import type { PackageConfig } from "./config";
 import stream from "stream";
 
+/**
+ *
+ * @param pkgConfig the PackageConfig relevant for the package to check
+ * @param commit can be a commit hash or a branch name
+ * @returns boolean to indicate if the package has changes
+ */
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
-  commitHash: string,
+  commit: string,
 ): Promise<boolean> => {
   if (
     pkgConfig.extraFiles?.length &&
-    (await gitCheck(pkgConfig.extraFiles, commitHash))
+    (await gitCheck(pkgConfig.extraFiles, commit))
   ) {
     return true;
   }
 
-  if (await turboCheck(pkgConfig.scope, commitHash)) {
+  if (await turboCheck(pkgConfig.scope, commit)) {
     return true;
   }
 
@@ -26,44 +32,44 @@ const turboCache = new Map<string, string[]>();
 // Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
-  commitHash: string,
+  commit: string,
 ): Promise<boolean> => {
-  if (!turboCache.has(commitHash)) {
+  if (!turboCache.has(commit)) {
     try {
-      const packages = await getTurboChangedPackages(commitHash);
-      turboCache.set(commitHash, packages);
+      const packages = await getTurboChangedPackages(commit);
+      turboCache.set(commit, packages);
     } catch (error) {
       core.warning(`Action failed with error: ${error}`);
       return true;
     }
   }
 
-  const hasChanges = turboCache.get(commitHash)?.includes(packageScope) ?? true;
+  const hasChanges = turboCache.get(commit)?.includes(packageScope) ?? true;
   if (hasChanges) {
     core.info(
-      `Turbo detected changes for package ${packageScope} since ${commitHash}`,
+      `Turbo detected changes for package ${packageScope} since ${commit}`,
     );
   } else {
     core.info(
-      `Turbo did not detect changes for package ${packageScope} since ${commitHash}`,
+      `Turbo did not detect changes for package ${packageScope} since ${commit}`,
     );
   }
   return hasChanges;
 };
 
 export const getTurboChangedPackages = async (
-  commitHash: string,
+  commit: string,
 ): Promise<string[]> => {
   const nullStream = new stream.Writable({
     write(chunk: never, encoding: never, callback: never) {},
   });
 
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
-      TURBO_TELEMETRY_DISABLED: '1', // disable printing telemetry message which breaks the json output
-      TURBO_PRINT_VERSION_DISABLED: '1', // disable printing turbo version which breaks the json output
-      ...process.env
+      TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
+      TURBO_PRINT_VERSION_DISABLED: "1", // disable printing turbo version which breaks the json output
+      ...process.env,
     },
     outStream: nullStream,
     failOnStdErr: true,
@@ -84,7 +90,7 @@ export const getTurboChangedPackages = async (
 // Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[] | undefined,
-  commitHash: string,
+  commit: string,
 ): Promise<boolean> => {
   let changed = false;
 
@@ -101,7 +107,7 @@ export const gitCheck = async (
     // Run the git diff command to get the list of files changed since the given commit hash
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...(paths || [])],
+      ["diff", "--name-only", commit, "HEAD", "--", ...(paths || [])],
       options,
     );
 
