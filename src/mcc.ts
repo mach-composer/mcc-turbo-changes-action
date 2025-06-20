@@ -9,6 +9,7 @@ export type Credentials = {
 
 export class Client {
   private token: string;
+
   constructor(private credentials: Credentials) {}
 
   private getToken = async (): Promise<string> => {
@@ -26,7 +27,11 @@ export class Client {
     return this.token;
   };
 
-  public getLatestVersion = async (component: string, branch: string) => {
+  public getLatestVersion = async (
+    component: string,
+    branch: string,
+    allowComponentNotFound: boolean,
+  ): Promise<string | null> => {
     const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`;
     console.log("Request info from " + url);
 
@@ -36,6 +41,13 @@ export class Client {
       },
     });
     if (!response.ok) {
+      if (response.status === 404 && allowComponentNotFound) {
+        console.warn(
+          `Component ${component} not found in branch ${branch}. Continuing without it.`,
+        );
+        return null;
+      }
+
       console.log(await response.text());
       throw new Error("Failed to fetch latest version");
     }

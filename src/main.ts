@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
-import { Config, parseConfig } from "./config";
-import { checkForChanges } from "./check";
-import { Client } from "./mcc";
+import {Config, parseConfig} from "./config";
+import {checkForChanges} from "./check";
+import {Client} from "./mcc";
 
 type Inputs = {
   branch: string;
@@ -11,6 +11,7 @@ type Inputs = {
   mccOrganization: string;
   mccProject: string;
   fallbackReference?: string;
+  allowComponentNotFound: boolean;
 };
 
 /**
@@ -31,7 +32,7 @@ export async function run(): Promise<void> {
 
     core.info(
       "Checking for changes: \n" +
-        inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n"),
+      inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n"),
     );
 
     for (const pkgConfig of inputs.config.packages) {
@@ -39,11 +40,14 @@ export async function run(): Promise<void> {
       const commitHash = await client.getLatestVersion(
         pkgConfig.name,
         inputs.branch,
+        inputs.allowComponentNotFound,
       );
 
+      // We default to an empty array for affected packages. This indicates that no changes were detected.
       let affectedPackages: string[] = [];
 
       if (commitHash) {
+        // If a commit hash is found, we can check for changes since this commit.
         affectedPackages = await checkForChanges(pkgConfig, commitHash);
       } else if (
         inputs.fallbackReference &&
@@ -55,6 +59,9 @@ export async function run(): Promise<void> {
           pkgConfig,
           inputs.fallbackReference,
         );
+      } else if (inputs.allowComponentNotFound) {
+        // If no commit hash is found and no fallback reference is given, we assume the package has changed.
+        affectedPackages = [pkgConfig.scope]
       }
 
       for (const pkg of affectedPackages) {
@@ -81,5 +88,6 @@ const readInputs = (): Inputs => {
     mccClientSecret: core.getInput("mcc_client_secret"),
     mccOrganization: core.getInput("mcc_organization"),
     mccProject: core.getInput("mcc_project"),
+    allowComponentNotFound: core.getBooleanInput("allow_component_not_found"),
   };
 };

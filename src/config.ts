@@ -32,5 +32,3 @@ export const parseConfig = (config: string): Config => {
 
   return result;
 };
-
-// If we
