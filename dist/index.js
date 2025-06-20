@@ -19701,7 +19701,7 @@ var require_core = __commonJS({
       return inputs.map((input) => input.trim());
     }
     exports.getMultilineInput = getMultilineInput;
-    function getBooleanInput(name, options) {
+    function getBooleanInput2(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
       const val = getInput2(name, options);
@@ -19712,7 +19712,7 @@ var require_core = __commonJS({
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
-    exports.getBooleanInput = getBooleanInput;
+    exports.getBooleanInput = getBooleanInput2;
     function setOutput2(name, value) {
       const filePath = process.env["GITHUB_OUTPUT"] || "";
       if (filePath) {
@@ -35345,7 +35345,10 @@ var getTurboPlan = async (commit) => {
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
+  let command = `pnpm  --silent turbo run build --dry=json`;
+  if (commit) {
+    command += ` --filter="...[${commit}]" `;
+  }
   const options = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1",
@@ -35413,7 +35416,7 @@ var Client = class {
     this.token = token.accessToken;
     return this.token;
   };
-  getLatestVersion = async (component, branch) => {
+  getLatestVersion = async (component, branch, allowComponentNotFound) => {
     const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`;
     console.log("Request info from " + url);
     const response = await fetch(url, {
@@ -35422,6 +35425,12 @@ var Client = class {
       }
     });
     if (!response.ok) {
+      if (response.status === 404 && allowComponentNotFound) {
+        console.warn(
+          `Component ${component} not found in branch ${branch}. Continuing without it.`
+        );
+        return null;
+      }
       console.log(await response.text());
       throw new Error("Failed to fetch latest version");
     }
@@ -35451,7 +35460,8 @@ async function run() {
       core3.info(`Processing ${pkgConfig.name}`);
       const commitHash = await client.getLatestVersion(
         pkgConfig.name,
-        inputs.branch
+        inputs.branch,
+        inputs.allowComponentNotFound
       );
       let affectedPackages = [];
       if (commitHash) {
@@ -35461,6 +35471,8 @@ async function run() {
           pkgConfig,
           inputs.fallbackReference
         );
+      } else if (inputs.allowComponentNotFound) {
+        affectedPackages = [pkgConfig.scope];
       }
       for (const pkg of affectedPackages) {
         if (!result.includes(pkg)) {
@@ -35483,7 +35495,8 @@ var readInputs = () => {
     mccClientID: core3.getInput("mcc_client_id"),
     mccClientSecret: core3.getInput("mcc_client_secret"),
     mccOrganization: core3.getInput("mcc_organization"),
-    mccProject: core3.getInput("mcc_project")
+    mccProject: core3.getInput("mcc_project"),
+    allowComponentNotFound: core3.getBooleanInput("allow_component_not_found")
   };
 };
 
