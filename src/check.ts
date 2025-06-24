@@ -98,10 +98,14 @@ export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
   };
 
   try {
+    core.info(`Running command '${command}'`);
+
     const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
     if (exitCode !== 0) {
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
+
+    core.info(stdout);
 
     const data = JSON.parse(stdout) as TurboPlan;
     turboPlanCache.set(commit, data);
