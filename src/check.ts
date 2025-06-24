@@ -13,15 +13,15 @@ type TurboPlan = {
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
-  commitHash: string,
+  commit: string,
 ): Promise<string[]> => {
-  const packages = await turboCheck(pkgConfig.scope, commitHash);
+  const packages = await turboCheck(pkgConfig.scope, commit);
   if (packages.length > 0) {
     return packages;
   }
 
   if (pkgConfig.extraFiles?.length) {
-    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
+    const hasChanges = await gitCheck(pkgConfig.extraFiles, commit);
     if (hasChanges) {
       return [pkgConfig.scope];
     }
@@ -31,16 +31,16 @@ export const checkForChanges = async (
 
 const turboPlanCache = new Map<string, TurboPlan>();
 
-// Return a list of package names that are modified since the given commitHash
+// Return a list of package names that are modified since the given commit
 export const turboCheck = async (
   packageScope: string,
-  commitHash: string,
+  commit: string,
 ): Promise<string[]> => {
   try {
-    const packages = await getTurboChangedPackages(commitHash, packageScope);
+    const packages = await getTurboChangedPackages(commit, packageScope);
     if (packages.length > 0) {
       core.info(
-        `Turbo detected package changes since ${commitHash}: ${packages.join(
+        `Turbo detected package changes since ${commit}: ${packages.join(
           ", ",
         )}`,
       );
@@ -53,10 +53,10 @@ export const turboCheck = async (
 };
 
 export const getTurboChangedPackages = async (
-  commitHash: string,
+  commit: string,
   packageScope: string,
 ): Promise<string[]> => {
-  const plan = await getTurboPlan(commitHash);
+  const plan = await getTurboPlan(commit);
   const affectedPackages = new Set<string>(plan.packages);
 
   if (!affectedPackages.has(packageScope)) {
@@ -76,8 +76,8 @@ export const getTurboChangedPackages = async (
   return [packageScope, ...dependencies];
 };
 
-export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
-  const cachedPlan = turboPlanCache.get(commitHash);
+export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
+  const cachedPlan = turboPlanCache.get(commit);
   if (cachedPlan) {
     return cachedPlan;
   }
@@ -86,7 +86,7 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
     write(chunk: never, encoding: never, callback: never) {},
   });
 
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
@@ -104,7 +104,7 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
     }
 
     const data = JSON.parse(stdout) as TurboPlan;
-    turboPlanCache.set(commitHash, data);
+    turboPlanCache.set(commit, data);
     return data;
   } catch (error) {
     throw new Error(`Action failed with error: ${error}`);
@@ -114,7 +114,7 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
 // Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[] | undefined,
-  commitHash: string,
+  commit: string,
 ): Promise<boolean> => {
   let changed = false;
 
@@ -131,7 +131,7 @@ export const gitCheck = async (
     // Run the git diff command to get the list of files changed since the given commit hash
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...(paths || [])],
+      ["diff", "--name-only", commit, "HEAD", "--", ...(paths || [])],
       options,
     );
 
