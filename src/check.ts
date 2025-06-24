@@ -47,7 +47,7 @@ export const turboCheck = async (
     }
     return packages;
   } catch (error) {
-    core.warning(`Action failed with error: ${error}`);
+    core.warning(`turbo check failed with error: ${error}`);
     return [packageScope];
   }
 };
@@ -107,7 +107,7 @@ export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
     turboPlanCache.set(commit, data);
     return data;
   } catch (error) {
-    throw new Error(`Action failed with error: ${error}`);
+    throw new Error(`turbo plan failed with error: ${error}`);
   }
 };
 
@@ -138,7 +138,7 @@ export const gitCheck = async (
     // If output is not empty, it means there are file changes
     changed = output.trim() !== "";
   } catch (error) {
-    core.warning(`Action failed with error: ${error}`);
+    core.warning(`git check failed with error: ${error}`);
     return true;
   }
 
