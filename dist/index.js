@@ -35358,10 +35358,12 @@ var getTurboPlan = async (commit) => {
     failOnStdErr: true
   };
   try {
+    core2.info(`Running command '${command}'`);
     const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
     if (exitCode !== 0) {
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
+    core2.info(stdout);
     const data = JSON.parse(stdout);
     turboPlanCache.set(commit, data);
     return data;
