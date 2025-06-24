@@ -35293,13 +35293,13 @@ var parseConfig = (config) => {
 var exec = __toESM(require_exec(), 1);
 var core2 = __toESM(require_core(), 1);
 import stream from "stream";
-var checkForChanges = async (pkgConfig, commitHash) => {
-  const packages = await turboCheck(pkgConfig.scope, commitHash);
+var checkForChanges = async (pkgConfig, commit) => {
+  const packages = await turboCheck(pkgConfig.scope, commit);
   if (packages.length > 0) {
     return packages;
   }
   if (pkgConfig.extraFiles?.length) {
-    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
+    const hasChanges = await gitCheck(pkgConfig.extraFiles, commit);
     if (hasChanges) {
       return [pkgConfig.scope];
     }
@@ -35307,12 +35307,14 @@ var checkForChanges = async (pkgConfig, commitHash) => {
   return [];
 };
 var turboPlanCache = /* @__PURE__ */ new Map();
-var turboCheck = async (packageScope, commitHash) => {
+var turboCheck = async (packageScope, commit) => {
   try {
-    const packages = await getTurboChangedPackages(commitHash, packageScope);
+    const packages = await getTurboChangedPackages(commit, packageScope);
     if (packages.length > 0) {
       core2.info(
-        `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
+        `Turbo detected package changes since ${commit}: ${packages.join(
+          ", "
+        )}`
       );
     }
     return packages;
@@ -35321,8 +35323,8 @@ var turboCheck = async (packageScope, commitHash) => {
     return [packageScope];
   }
 };
-var getTurboChangedPackages = async (commitHash, packageScope) => {
-  const plan = await getTurboPlan(commitHash);
+var getTurboChangedPackages = async (commit, packageScope) => {
+  const plan = await getTurboPlan(commit);
   const affectedPackages = new Set(plan.packages);
   if (!affectedPackages.has(packageScope)) {
     return [];
@@ -35334,8 +35336,8 @@ var getTurboChangedPackages = async (commitHash, packageScope) => {
   const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
   return [packageScope, ...dependencies];
 };
-var getTurboPlan = async (commitHash) => {
-  const cachedPlan = turboPlanCache.get(commitHash);
+var getTurboPlan = async (commit) => {
+  const cachedPlan = turboPlanCache.get(commit);
   if (cachedPlan) {
     return cachedPlan;
   }
@@ -35343,7 +35345,7 @@ var getTurboPlan = async (commitHash) => {
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
   const options = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1",
@@ -35361,13 +35363,13 @@ var getTurboPlan = async (commitHash) => {
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
     const data = JSON.parse(stdout);
-    turboPlanCache.set(commitHash, data);
+    turboPlanCache.set(commit, data);
     return data;
   } catch (error) {
     throw new Error(`Action failed with error: ${error}`);
   }
 };
-var gitCheck = async (paths, commitHash) => {
+var gitCheck = async (paths, commit) => {
   let changed = false;
   try {
     let output = "";
@@ -35380,7 +35382,7 @@ var gitCheck = async (paths, commitHash) => {
     };
     await exec.exec(
       "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths || []],
+      ["diff", "--name-only", commit, "HEAD", "--", ...paths || []],
       options
     );
     changed = output.trim() !== "";
@@ -35451,7 +35453,15 @@ async function run() {
         pkgConfig.name,
         inputs.branch
       );
-      const affectedPackages = commitHash ? await checkForChanges(pkgConfig, commitHash) : [];
+      let affectedPackages = [];
+      if (commitHash) {
+        affectedPackages = await checkForChanges(pkgConfig, commitHash);
+      } else if (inputs.fallbackReference && inputs.fallbackReference != inputs.branch) {
+        affectedPackages = await checkForChanges(
+          pkgConfig,
+          inputs.fallbackReference
+        );
+      }
       for (const pkg of affectedPackages) {
         if (!result.includes(pkg)) {
           result.push(pkg);
