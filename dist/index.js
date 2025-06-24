@@ -35385,6 +35385,8 @@ var gitCheck = async (paths, commit) => {
       ["diff", "--name-only", commit, "HEAD", "--", ...paths || []],
       options
     );
+    core2.info("git diff output");
+    core2.info(output);
     changed = output.trim() !== "";
   } catch (error) {
     core2.warning(`git check failed with error: ${error}`);
