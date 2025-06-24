@@ -86,7 +86,7 @@ export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
     write(chunk: never, encoding: never, callback: never) {},
   });
 
-  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
+  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
