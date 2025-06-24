@@ -10,6 +10,7 @@ type Inputs = {
   mccClientSecret: string;
   mccOrganization: string;
   mccProject: string;
+  fallbackReference?: string;
 };
 
 /**
@@ -40,9 +41,21 @@ export async function run(): Promise<void> {
         inputs.branch,
       );
 
-      const affectedPackages = commitHash
-        ? await checkForChanges(pkgConfig, commitHash)
-        : [];
+      let affectedPackages: string[] = [];
+
+      if (commitHash) {
+        affectedPackages = await checkForChanges(pkgConfig, commitHash);
+      } else if (
+        inputs.fallbackReference &&
+        inputs.fallbackReference != inputs.branch
+      ) {
+        // When a fallback reference is given (this can be branch name, a commit or a git tag),
+        // we can check for changes using this reference instead.
+        affectedPackages = await checkForChanges(
+          pkgConfig,
+          inputs.fallbackReference,
+        );
+      }
 
       for (const pkg of affectedPackages) {
         if (!result.includes(pkg)) {
