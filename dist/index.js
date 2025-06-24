@@ -35319,7 +35319,7 @@ var turboCheck = async (packageScope, commit) => {
     }
     return packages;
   } catch (error) {
-    core2.warning(`Action failed with error: ${error}`);
+    core2.warning(`turbo check failed with error: ${error}`);
     return [packageScope];
   }
 };
@@ -35345,7 +35345,7 @@ var getTurboPlan = async (commit) => {
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
+  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
   const options = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1",
@@ -35366,7 +35366,7 @@ var getTurboPlan = async (commit) => {
     turboPlanCache.set(commit, data);
     return data;
   } catch (error) {
-    throw new Error(`Action failed with error: ${error}`);
+    throw new Error(`turbo plan failed with error: ${error}`);
   }
 };
 var gitCheck = async (paths, commit) => {
@@ -35387,7 +35387,7 @@ var gitCheck = async (paths, commit) => {
     );
     changed = output.trim() !== "";
   } catch (error) {
-    core2.warning(`Action failed with error: ${error}`);
+    core2.warning(`git check failed with error: ${error}`);
     return true;
   }
   return changed;

@@ -47,7 +47,7 @@ export const turboCheck = async (
     }
     return packages;
   } catch (error) {
-    core.warning(`Action failed with error: ${error}`);
+    core.warning(`turbo check failed with error: ${error}`);
     return [packageScope];
   }
 };
@@ -86,7 +86,7 @@ export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
     write(chunk: never, encoding: never, callback: never) {},
   });
 
-  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
+  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
@@ -107,7 +107,7 @@ export const getTurboPlan = async (commit: string): Promise<TurboPlan> => {
     turboPlanCache.set(commit, data);
     return data;
   } catch (error) {
-    throw new Error(`Action failed with error: ${error}`);
+    throw new Error(`turbo plan failed with error: ${error}`);
   }
 };
 
@@ -138,25 +138,9 @@ export const gitCheck = async (
     // If output is not empty, it means there are file changes
     changed = output.trim() !== "";
   } catch (error) {
-    core.warning(`Action failed with error: ${error}`);
+    core.warning(`git check failed with error: ${error}`);
     return true;
   }
 
   return changed;
 };
-
-/**
- * Returns the intersection of two sets.
- *
- * Note that Node 22 has this built-in, see
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
- */
-function intersectSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-  const intersection = new Set<T>();
-  for (const item of set1) {
-    if (set2.has(item)) {
-      intersection.add(item);
-    }
-  }
-  return intersection;
-}
