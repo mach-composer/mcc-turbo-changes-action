@@ -11,7 +11,7 @@ import stream from "stream";
  */
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
-  commit: string,
+  commit: string
 ): Promise<boolean> => {
   if (
     pkgConfig.extraFiles?.length &&
@@ -32,7 +32,7 @@ const turboCache = new Map<string, string[]>();
 // Return true if there are changes according to turbo-ignore
 export const turboCheck = async (
   packageScope: string,
-  commit: string,
+  commit: string
 ): Promise<boolean> => {
   if (!turboCache.has(commit)) {
     try {
@@ -47,24 +47,24 @@ export const turboCheck = async (
   const hasChanges = turboCache.get(commit)?.includes(packageScope) ?? true;
   if (hasChanges) {
     core.info(
-      `Turbo detected changes for package ${packageScope} since ${commit}`,
+      `Turbo detected changes for package ${packageScope} since ${commit}`
     );
   } else {
     core.info(
-      `Turbo did not detect changes for package ${packageScope} since ${commit}`,
+      `Turbo did not detect changes for package ${packageScope} since ${commit}`
     );
   }
   return hasChanges;
 };
 
 export const getTurboChangedPackages = async (
-  commit: string,
+  commit: string
 ): Promise<string[]> => {
   const nullStream = new stream.Writable({
     write(chunk: never, encoding: never, callback: never) {},
   });
 
-  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
+  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
@@ -90,7 +90,7 @@ export const getTurboChangedPackages = async (
 // Returns true if there are changes according to git
 export const gitCheck = async (
   paths: string[] | undefined,
-  commit: string,
+  commit: string
 ): Promise<boolean> => {
   let changed = false;
 
@@ -108,7 +108,7 @@ export const gitCheck = async (
     await exec.exec(
       "git",
       ["diff", "--name-only", commit, "HEAD", "--", ...(paths || [])],
-      options,
+      options
     );
 
     // If output is not empty, it means there are file changes

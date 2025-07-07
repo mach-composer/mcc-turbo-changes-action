@@ -34509,7 +34509,7 @@ var getTurboChangedPackages = async (commit) => {
     write(chunk, encoding, callback) {
     }
   });
-  const command = `pnpm turbo run build --filter="...[${commit}]" --dry=json`;
+  const command = `pnpm --silent turbo run build --filter="...[${commit}]" --dry=json`;
   const options = {
     env: {
       TURBO_TELEMETRY_DISABLED: "1",
