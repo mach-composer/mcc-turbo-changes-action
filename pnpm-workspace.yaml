@@ -1,0 +1,2 @@
+allowBuilds:
+  esbuild: false # postinstall not necessary for functionality, see https://github.com/evanw/esbuild/issues/4085

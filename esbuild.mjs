@@ -5,7 +5,7 @@ await build({
   bundle: true,
   platform: "node",
   format: "esm",
-  target: ["node20"],
+  target: ["node24"],
   outdir: "./dist",
   banner: {
     // Needed to fix a bug in esbuild around using ESM only, see: https://github.com/evanw/esbuild/pull/2067 for more information

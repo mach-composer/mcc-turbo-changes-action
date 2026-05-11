@@ -30,5 +30,5 @@ outputs:
     description: "List of packages that have changed"
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js

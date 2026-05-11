@@ -15,7 +15,7 @@
     "url": "https://github.com/mach-composer/mcc-turbo-changes-action/issues"
   },
   "scripts": {
-    "build": "tsc && node ./esbuild.mjs",
+    "build": "tsgo && node ./esbuild.mjs",
     "format": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --cache",
     "format:fix": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --cache --log-level=warn",
     "test": "vitest"
@@ -29,7 +29,7 @@
     ".": "./dist/index.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
@@ -40,11 +40,11 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.13.5",
-    "esbuild": "^0.25.0",
+    "@typescript/native-preview": "7.0.0-dev.20260421.2",
+    "esbuild": "^0.28.0",
     "prettier": "^3.5.2",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   },
-  "packageManager": "pnpm@8.15.8"
+  "packageManager": "pnpm@11.0.9"
 }
