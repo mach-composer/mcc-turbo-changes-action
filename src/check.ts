@@ -3,15 +3,13 @@ import * as core from "@actions/core";
 import type { PackageConfig } from "./config";
 import stream from "stream";
 
-
 type TurboPlan = {
-  packages: string[]
+  packages: string[];
   tasks: {
     package: string;
     dependencies: string[];
-  }[]
-}
-
+  }[];
+};
 
 export const checkForChanges = async (
   pkgConfig: PackageConfig,
@@ -25,10 +23,10 @@ export const checkForChanges = async (
   if (pkgConfig.extraFiles?.length) {
     const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
     if (hasChanges) {
-      return [pkgConfig.scope]
+      return [pkgConfig.scope];
     }
   }
-  return []
+  return [];
 };
 
 const turboPlanCache = new Map<string, TurboPlan>();
@@ -48,7 +46,7 @@ export const turboCheck = async (
     return packages;
   } catch (error) {
     core.warning(`Action failed with error: ${error}`);
-    return [packageScope]
+    return [packageScope];
   }
 };
 
@@ -69,15 +67,14 @@ export const getTurboChangedPackages = async (
   }
 
   // TODO: need to check if we need to do this recursively
-  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
+  const dependencies = task.dependencies
+    .map((dep) => dep.split("#")[0])
+    .filter((dep) => affectedPackages.has(dep));
 
   return [packageScope, ...dependencies];
 };
 
-
-export const getTurboPlan = async (
-  commitHash: string,
-): Promise<TurboPlan> => {
+export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
   const cachedPlan = turboPlanCache.get(commitHash);
   if (cachedPlan) {
     return cachedPlan;
@@ -90,9 +87,9 @@ export const getTurboPlan = async (
   const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
   const options: exec.ExecOptions = {
     env: {
-      TURBO_TELEMETRY_DISABLED: '1', // disable printing telemetry message which breaks the json output
-      TURBO_PRINT_VERSION_DISABLED: '1', // disable printing turbo version which breaks the json output
-      ...process.env
+      TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
+      TURBO_PRINT_VERSION_DISABLED: "1", // disable printing turbo version which breaks the json output
+      ...process.env,
     },
     outStream: nullStream,
     failOnStdErr: true,
@@ -104,9 +101,9 @@ export const getTurboPlan = async (
       throw new Error(`Failed to run turbo: ${stdout}`);
     }
 
-    const data = JSON.parse(stdout) as TurboPlan
-    turboPlanCache.set(commitHash, data )
-    return data
+    const data = JSON.parse(stdout) as TurboPlan;
+    turboPlanCache.set(commitHash, data);
+    return data;
   } catch (error) {
     throw new Error(`Action failed with error: ${error}`);
   }
@@ -153,11 +150,11 @@ export const gitCheck = async (
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
  */
 function intersectSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-	const intersection = new Set<T>();
-	for (const item of set1) {
-		if (set2.has(item)) {
-			intersection.add(item);
-		}
-	}
-	return intersection;
+  const intersection = new Set<T>();
+  for (const item of set1) {
+    if (set2.has(item)) {
+      intersection.add(item);
+    }
+  }
+  return intersection;
 }
