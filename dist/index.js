@@ -32690,6 +32690,111 @@ var require_client_oauth2 = __commonJS({
 // src/main.ts
 var core3 = __toESM(require_core(), 1);
 
+// src/check.ts
+var core = __toESM(require_core(), 1);
+var exec = __toESM(require_exec(), 1);
+import stream from "node:stream";
+var checkForChanges = async (pkgConfig, commitHash) => {
+  const packages = await turboCheck(pkgConfig.scope, commitHash);
+  if (packages.length > 0) {
+    return packages;
+  }
+  if (pkgConfig.extraFiles?.length) {
+    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
+    if (hasChanges) {
+      return [pkgConfig.scope];
+    }
+  }
+  return [];
+};
+var turboPlanCache = /* @__PURE__ */ new Map();
+var turboCheck = async (packageScope, commitHash) => {
+  try {
+    const packages = await getTurboChangedPackages(commitHash, packageScope);
+    if (packages.length > 0) {
+      core.info(
+        `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
+      );
+    }
+    return packages;
+  } catch (error) {
+    core.warning(`Action failed with error: ${error}`);
+    return [packageScope];
+  }
+};
+var getTurboChangedPackages = async (commitHash, packageScope) => {
+  const plan = await getTurboPlan(commitHash);
+  const affectedPackages = new Set(plan.packages);
+  if (!affectedPackages.has(packageScope)) {
+    return [];
+  }
+  const task = plan.tasks.find((task2) => task2.package === packageScope);
+  if (!task) {
+    return [packageScope];
+  }
+  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
+  return [packageScope, ...dependencies];
+};
+var getTurboPlan = async (commitHash) => {
+  const cachedPlan = turboPlanCache.get(commitHash);
+  if (cachedPlan) {
+    return cachedPlan;
+  }
+  const nullStream = new stream.Writable({
+    // biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty
+    write(chunk, encoding, callback) {
+    }
+  });
+  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+  const options = {
+    env: {
+      // biome-ignore-start lint/style/useNamingConvention: env vars
+      TURBO_TELEMETRY_DISABLED: "1",
+      // disable printing telemetry message which breaks the json output
+      TURBO_PRINT_VERSION_DISABLED: "1",
+      // disable printing turbo version which breaks the json output
+      // biome-ignore-end lint/style/useNamingConvention: env vars
+      ...process.env
+    },
+    outStream: nullStream,
+    failOnStdErr: true
+  };
+  try {
+    const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to run turbo: ${stdout}`);
+    }
+    const data = JSON.parse(stdout);
+    turboPlanCache.set(commitHash, data);
+    return data;
+  } catch (error) {
+    throw new Error(`Action failed with error: ${error}`);
+  }
+};
+var gitCheck = async (paths, commitHash) => {
+  let changed = false;
+  try {
+    let output = "";
+    const options = {
+      listeners: {
+        stdout: (data) => {
+          output += data.toString();
+        }
+      }
+    };
+    await exec.exec(
+      "git",
+      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths || []],
+      options
+    );
+    changed = output.trim() !== "";
+  } catch (error) {
+    core.warning(`Action failed with error: ${error}`);
+    return true;
+  }
+  return changed;
+};
+
 // node_modules/.pnpm/js-yaml@4.1.0/node_modules/js-yaml/dist/js-yaml.mjs
 function isNothing(subject) {
   return typeof subject === "undefined" || subject === null;
@@ -33259,7 +33364,7 @@ var json = failsafe.extend({
     float
   ]
 });
-var core = json;
+var core2 = json;
 var YAML_DATE_REGEXP = new RegExp(
   "^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$"
 );
@@ -33473,7 +33578,7 @@ var set = new type("tag:yaml.org,2002:set", {
   resolve: resolveYamlSet,
   construct: constructYamlSet
 });
-var _default = core.extend({
+var _default = core2.extend({
   implicit: [
     timestamp,
     merge
@@ -35289,108 +35394,6 @@ var parseConfig = (config) => {
   return result;
 };
 
-// src/check.ts
-var exec = __toESM(require_exec(), 1);
-var core2 = __toESM(require_core(), 1);
-import stream from "stream";
-var checkForChanges = async (pkgConfig, commitHash) => {
-  const packages = await turboCheck(pkgConfig.scope, commitHash);
-  if (packages.length > 0) {
-    return packages;
-  }
-  if (pkgConfig.extraFiles?.length) {
-    const hasChanges = await gitCheck(pkgConfig.extraFiles, commitHash);
-    if (hasChanges) {
-      return [pkgConfig.scope];
-    }
-  }
-  return [];
-};
-var turboPlanCache = /* @__PURE__ */ new Map();
-var turboCheck = async (packageScope, commitHash) => {
-  try {
-    const packages = await getTurboChangedPackages(commitHash, packageScope);
-    if (packages.length > 0) {
-      core2.info(
-        `Turbo detected package changes since ${commitHash}: ${packages.join(", ")}`
-      );
-    }
-    return packages;
-  } catch (error) {
-    core2.warning(`Action failed with error: ${error}`);
-    return [packageScope];
-  }
-};
-var getTurboChangedPackages = async (commitHash, packageScope) => {
-  const plan = await getTurboPlan(commitHash);
-  const affectedPackages = new Set(plan.packages);
-  if (!affectedPackages.has(packageScope)) {
-    return [];
-  }
-  const task = plan.tasks.find((task2) => task2.package === packageScope);
-  if (!task) {
-    return [packageScope];
-  }
-  const dependencies = task.dependencies.map((dep) => dep.split("#")[0]).filter((dep) => affectedPackages.has(dep));
-  return [packageScope, ...dependencies];
-};
-var getTurboPlan = async (commitHash) => {
-  const cachedPlan = turboPlanCache.get(commitHash);
-  if (cachedPlan) {
-    return cachedPlan;
-  }
-  const nullStream = new stream.Writable({
-    write(chunk, encoding, callback) {
-    }
-  });
-  const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
-  const options = {
-    env: {
-      TURBO_TELEMETRY_DISABLED: "1",
-      // disable printing telemetry message which breaks the json output
-      TURBO_PRINT_VERSION_DISABLED: "1",
-      // disable printing turbo version which breaks the json output
-      ...process.env
-    },
-    outStream: nullStream,
-    failOnStdErr: true
-  };
-  try {
-    const { exitCode, stdout } = await exec.getExecOutput(command, [], options);
-    if (exitCode !== 0) {
-      throw new Error(`Failed to run turbo: ${stdout}`);
-    }
-    const data = JSON.parse(stdout);
-    turboPlanCache.set(commitHash, data);
-    return data;
-  } catch (error) {
-    throw new Error(`Action failed with error: ${error}`);
-  }
-};
-var gitCheck = async (paths, commitHash) => {
-  let changed = false;
-  try {
-    let output = "";
-    const options = {
-      listeners: {
-        stdout: (data) => {
-          output += data.toString();
-        }
-      }
-    };
-    await exec.exec(
-      "git",
-      ["diff", "--name-only", commitHash, "HEAD", "--", ...paths || []],
-      options
-    );
-    changed = output.trim() !== "";
-  } catch (error) {
-    core2.warning(`Action failed with error: ${error}`);
-    return true;
-  }
-  return changed;
-};
-
 // src/mcc.ts
 var import_client_oauth2 = __toESM(require_client_oauth2(), 1);
 var Client = class {
@@ -35417,6 +35420,7 @@ var Client = class {
     console.log("Request info from " + url);
     const response = await fetch(url, {
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header
         Authorization: `Bearer ${await this.getToken()}`
       }
     });
@@ -35425,7 +35429,7 @@ var Client = class {
       throw new Error("Failed to fetch latest version");
     }
     const result = await response.json();
-    if (result && result.version) {
+    if (result?.version) {
       return result.version;
     }
     return null;
