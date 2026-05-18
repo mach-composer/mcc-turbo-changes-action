@@ -32,6 +32,7 @@ export class Client {
 
 		const response = await fetch(url, {
 			headers: {
+				// biome-ignore lint/style/useNamingConvention: HTTP header
 				Authorization: `Bearer ${await this.getToken()}`,
 			},
 		});
@@ -40,7 +41,7 @@ export class Client {
 			throw new Error("Failed to fetch latest version");
 		}
 		const result = await response.json();
-		if (result && result.version) {
+		if (result?.version) {
 			return result.version;
 		}
 		return null;

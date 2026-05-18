@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { Config, parseConfig } from "./config";
+import { type Config, parseConfig } from "./config";
 
 it("should parse config", () => {
 	const input = `

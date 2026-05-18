@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import { checkForChanges } from "./check";
-import { Config, parseConfig } from "./config";
+import { type Config, parseConfig } from "./config";
 import { Client } from "./mcc";
 
 type Inputs = {

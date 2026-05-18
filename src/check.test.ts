@@ -1,5 +1,4 @@
 import * as exec from "@actions/exec";
-import { listeners } from "process";
 import { describe, expect, it, vi } from "vitest";
 import { gitCheck, turboCheck } from "./check";
 

@@ -1,6 +1,6 @@
+import stream from "node:stream";
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
-import stream from "stream";
 import type { PackageConfig } from "./config";
 
 type TurboPlan = {
@@ -81,14 +81,17 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
 	}
 
 	const nullStream = new stream.Writable({
+		// biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty
 		write(chunk: never, encoding: never, callback: never) {},
 	});
 
 	const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
 	const options: exec.ExecOptions = {
 		env: {
+			// biome-ignore-start lint/style/useNamingConvention: env vars
 			TURBO_TELEMETRY_DISABLED: "1", // disable printing telemetry message which breaks the json output
 			TURBO_PRINT_VERSION_DISABLED: "1", // disable printing turbo version which breaks the json output
+			// biome-ignore-end lint/style/useNamingConvention: env vars
 			...process.env,
 		},
 		outStream: nullStream,
@@ -142,19 +145,3 @@ export const gitCheck = async (
 
 	return changed;
 };
-
-/**
- * Returns the intersection of two sets.
- *
- * Note that Node 22 has this built-in, see
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
- */
-function intersectSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
-	const intersection = new Set<T>();
-	for (const item of set1) {
-		if (set2.has(item)) {
-			intersection.add(item);
-		}
-	}
-	return intersection;
-}
