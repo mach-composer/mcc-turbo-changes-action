@@ -73,4 +73,4 @@ jobs:
             echo "| Format | $(icon "$FORMAT") |"
             echo "| Knip | $(icon "$KNIP") |"
             echo "| Typecheck | $(icon "$TYPECHECK") |"
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
