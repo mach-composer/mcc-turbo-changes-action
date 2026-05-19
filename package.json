@@ -1,50 +1,54 @@
 {
-  "name": "mcc-turbo-changes-action",
-  "description": "GitHub action which decides if a specific package (component) in a monorepo is modified and needs to be built and published ",
-  "version": "0.0.0",
-  "author": "Lab Digital",
-  "private": true,
-  "type": "module",
-  "license": "MIT",
-  "homepage": "https://github.com/mach-composer/mcc-turbo-changes-action",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mach-composer/mcc-turbo-changes-action.git"
-  },
-  "bugs": {
-    "url": "https://github.com/mach-composer/mcc-turbo-changes-action/issues"
-  },
-  "scripts": {
-    "build": "tsc && node ./esbuild.mjs",
-    "format": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --cache",
-    "format:fix": "prettier --write . --ignore-path .gitignore --ignore-path .prettierignore --cache --log-level=warn",
-    "test": "vitest"
-  },
-  "keywords": [
-    "actions",
-    "node",
-    "setup"
-  ],
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/exec": "^1.1.1",
-    "client-oauth2": "^4.3.3",
-    "js-yaml": "^4.1.0"
-  },
-  "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.13.5",
-    "esbuild": "^0.25.0",
-    "prettier": "^3.5.2",
-    "tsx": "^4.19.3",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.7"
-  },
-  "packageManager": "pnpm@8.15.8"
+	"name": "mcc-turbo-changes-action",
+	"description": "GitHub action which decides if a specific package (component) in a monorepo is modified and needs to be built and published ",
+	"version": "0.0.0",
+	"author": "Lab Digital",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"homepage": "https://github.com/mach-composer/mcc-turbo-changes-action",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mach-composer/mcc-turbo-changes-action.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mach-composer/mcc-turbo-changes-action/issues"
+	},
+	"scripts": {
+		"build": "tsgo && node ./esbuild.mjs",
+		"format": "biome check --linter-enabled=false",
+		"format:fix": "biome check --linter-enabled=false --write",
+		"lint": "biome lint --max-diagnostics 500",
+		"lint:fix": "biome lint --max-diagnostics 500 --fix",
+		"lint:knip": "pnpm knip",
+		"test": "vitest"
+	},
+	"keywords": [
+		"actions",
+		"node",
+		"setup"
+	],
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"engines": {
+		"node": ">=24"
+	},
+	"dependencies": {
+		"@actions/core": "^1.11.1",
+		"@actions/exec": "^1.1.1",
+		"client-oauth2": "^4.3.3",
+		"js-yaml": "^4.1.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.15",
+		"@types/js-yaml": "^4.0.9",
+		"@types/node": "^24.12.4",
+		"@typescript/native-preview": "7.0.0-dev.20260518.1",
+		"esbuild": "^0.28.0",
+		"knip": "^6.14.1",
+		"tsx": "^4.22.1",
+		"vitest": "^4.1.6"
+	},
+	"packageManager": "pnpm@11.0.9"
 }
