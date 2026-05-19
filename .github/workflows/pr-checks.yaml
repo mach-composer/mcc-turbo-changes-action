@@ -1,0 +1,76 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        id: lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
+
+      - name: Format
+        id: format
+        if: ${{ !cancelled() }}
+        run: pnpm format
+
+      - name: Knip
+        id: knip
+        if: ${{ !cancelled() }}
+        run: pnpm lint:knip
+
+      - name: Typecheck
+        id: typecheck
+        if: ${{ !cancelled() }}
+        run: pnpm typecheck
+
+      - name: Summary
+        if: ${{ !cancelled() }}
+        env:
+          LINT: ${{ steps.lint.outcome }}
+          FORMAT: ${{ steps.format.outcome }}
+          KNIP: ${{ steps.knip.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+        run: |
+          icon() {
+            case "$1" in
+              success) echo "✅ Pass" ;;
+              failure) echo "❌ Fail" ;;
+              skipped) echo "⏭️ Skipped" ;;
+              *)       echo "❔ $1" ;;
+            esac
+          }
+          {
+            echo "## PR Checks"
+            echo ""
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| Lint | $(icon "$LINT") |"
+            echo "| Format | $(icon "$FORMAT") |"
+            echo "| Knip | $(icon "$KNIP") |"
+            echo "| Typecheck | $(icon "$TYPECHECK") |"
+          } >> "$GITHUB_STEP_SUMMARY"
