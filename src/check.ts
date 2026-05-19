@@ -81,8 +81,10 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
 	}
 
 	const nullStream = new stream.Writable({
-		// biome-ignore lint/suspicious/noEmptyBlockStatements: intentionally empty
-		write(chunk: never, encoding: never, callback: never) {},
+		write(_, __, cb) {
+			// Must call callback to indicate that the chunk has been processed
+			cb();
+		},
 	});
 
 	const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
