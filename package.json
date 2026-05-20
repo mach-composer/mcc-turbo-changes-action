@@ -21,7 +21,8 @@
 		"lint": "biome lint --max-diagnostics 500",
 		"lint:fix": "biome lint --max-diagnostics 500 --fix",
 		"lint:knip": "pnpm knip",
-		"test": "vitest"
+		"test": "vitest",
+		"typecheck": "tsgo --noEmit"
 	},
 	"keywords": [
 		"actions",
