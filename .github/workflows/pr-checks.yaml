@@ -60,17 +60,17 @@ jobs:
             case "$1" in
               success) echo "✅ Pass" ;;
               failure) echo "❌ Fail" ;;
-              skipped) echo "⏭️ Skipped" ;;
+              skipped) echo "⏭️ Skip" ;;
               *)       echo "❔ $1" ;;
             esac
           }
           {
             echo "## PR Checks"
             echo ""
-            echo "| Check | Result |"
-            echo "| --- | --- |"
-            echo "| Lint | $(icon "$LINT") |"
-            echo "| Format | $(icon "$FORMAT") |"
-            echo "| Knip | $(icon "$KNIP") |"
-            echo "| Typecheck | $(icon "$TYPECHECK") |"
+            echo "| Check     | Result  |"
+            echo "| --------- | ------- |"
+            echo "| Lint      | $(icon "$LINT")    |"
+            echo "| Format    | $(icon "$FORMAT")    |"
+            echo "| Knip      | $(icon "$KNIP")    |"
+            echo "| Typecheck | $(icon "$TYPECHECK")    |"
           } | tee -a "$GITHUB_STEP_SUMMARY"
