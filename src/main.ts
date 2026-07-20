@@ -88,6 +88,7 @@ const readInputs = (): Inputs => {
     mccClientSecret: core.getInput("mcc_client_secret"),
     mccOrganization: core.getInput("mcc_organization"),
     mccProject: core.getInput("mcc_project"),
+    fallbackReference: core.getInput("fallback_reference"),
     allowComponentNotFound: core.getBooleanInput("allow_component_not_found"),
   };
 };
