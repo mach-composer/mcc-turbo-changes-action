@@ -138,6 +138,9 @@ export const gitCheck = async (
     );
 
     // If output is not empty, it means there are file changes
+    core.info("git diff output");
+    core.info(output);
+
     changed = output.trim() !== "";
   } catch (error) {
     core.warning(`git check failed with error: ${error}`);
