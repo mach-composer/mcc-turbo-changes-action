@@ -3,5 +3,5 @@
  */
 import { run } from "./main";
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
+// biome-ignore lint/nursery/noFloatingPromises: error handling is done in main.ts
 run();
