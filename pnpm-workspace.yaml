@@ -2,4 +2,5 @@ allowBuilds:
   esbuild: false # postinstall not necessary for functionality, see https://github.com/evanw/esbuild/issues/4085
 minimumReleaseAge: 10080 # 7 days
 overrides:
-  "vite": "6.4.2"
+  "vite": "6.4.5"
+  "tough-cookie": "^4.1.4"
