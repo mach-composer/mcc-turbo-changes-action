@@ -8,17 +8,34 @@ the last release published to MACH Composer Cloud.
 
 ## Versions
 
-Always pin to a major version ref (e.g. `@v2`) — never reference `main`, as it
+Pin to a release tag or a major version ref — never reference `main`, as it
 can contain unreleased changes.
 
-| Ref   | Runtime | Notes                                                                              |
-| ----- | ------- | ---------------------------------------------------------------------------------- |
-| `@v2` | Node 24 | **Recommended.** Adds the `allow_component_not_found` input and updated tooling.    |
-| `@v1` | Node 20 | Previous stable release. Supports the `fallback_reference` input.                  |
+| Ref       | Runtime | Notes                                                                                                  |
+| --------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| `@v2.1.0` | Node 24 | **Latest release.** Security updates, `rolldown` bundle, `fallback_reference` and `allow_component_not_found` inputs. |
+| `@v2`     | Node 24 | Moving major version branch, kept in sync with the latest `v2.x` release.                               |
+| `@v1`     | Node 20 | Previous stable release. Supports the `fallback_reference` input.                                       |
+
+We recommend pinning the commit SHA of a release tag with the version as a
+comment (e.g. using [pinact](https://github.com/suzuki-shunsuke/pinact)):
 
 ```yaml
-- uses: mach-composer/mcc-turbo-changes-action@v2
+- uses: mach-composer/mcc-turbo-changes-action@df1592f1c08ed1d25b129f6937bd696e19049e06 # v2.1.0
 ```
+
+### Releasing
+
+`main` and `v2` point to the same commit. To release, tag the commit on `main`
+and fast-forward the `v2` branch to it:
+
+```sh
+git tag -a v2.x.y -m "v2.x.y" && git push origin v2.x.y
+git push origin main:v2
+```
+
+Always merge into `main` and fast-forward `v2` afterwards; never commit or
+squash-merge directly into `v2`, otherwise the branches diverge.
 
 ## Usage
 
