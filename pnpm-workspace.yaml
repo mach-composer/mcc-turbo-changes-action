@@ -1,5 +1,16 @@
+# Supply chain protection
+# Only install package versions that have been published for at least 14 days
+minimumReleaseAge: 20160
+# Fail when a package's trust level (provenance / trusted publisher) drops compared to earlier releases
+trustPolicy: no-downgrade
+# Disallow transitive dependencies from git repositories or direct tarball URLs
+blockExoticSubdeps: true
+# Fail the install when a dependency has unapproved build scripts
+strictDepBuilds: true
+# Dependencies allowed to run install scripts
 allowBuilds:
   esbuild: false # postinstall not necessary for functionality, see https://github.com/evanw/esbuild/issues/4085
-minimumReleaseAge: 10080 # 7 days
+
 overrides:
-  "vite": "6.4.2"
+  "vite": "6.4.5"
+  "tough-cookie": "^4.1.4"
