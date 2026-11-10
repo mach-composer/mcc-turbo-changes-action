@@ -15,7 +15,7 @@
 		"url": "https://github.com/mach-composer/mcc-turbo-changes-action/issues"
 	},
 	"scripts": {
-		"build": "tsgo && node ./esbuild.mjs",
+		"build": "tsgo && rolldown -c rolldown.config.mjs",
 		"format": "biome check --linter-enabled=false",
 		"format:fix": "biome check --linter-enabled=false --write",
 		"lint": "biome lint --max-diagnostics 500",
@@ -39,17 +39,17 @@
 		"@actions/core": "^3.0.1",
 		"@actions/exec": "^3.0.0",
 		"client-oauth2": "^4.3.3",
-		"js-yaml": "^4.1.1"
+		"js-yaml": "^4.3.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
 		"@types/js-yaml": "^4.0.9",
-		"@types/node": "^24.12.4",
+		"@types/node": "^24.19.2",
 		"@typescript/native-preview": "7.0.0-dev.20260512.1",
-		"esbuild": "^0.28.0",
-		"knip": "^6.12.2",
-		"tsx": "^4.21.0",
-		"vitest": "^4.1.6"
+		"knip": "^6.43.0",
+		"rolldown": "1.2.15",
+		"tsx": "^4.23.15",
+		"vitest": "^4.1.12"
 	},
-	"packageManager": "pnpm@11.0.9"
+	"packageManager": "pnpm@12.15.0"
 }
