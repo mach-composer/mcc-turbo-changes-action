@@ -87,7 +87,7 @@ export const getTurboPlan = async (commitHash: string): Promise<TurboPlan> => {
 		},
 	});
 
-	const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+	const command = `pnpm --silent turbo run build --filter="...[${commitHash}]" --dry=json`;
 	const options: exec.ExecOptions = {
 		env: {
 			// biome-ignore-start lint/style/useNamingConvention: env vars

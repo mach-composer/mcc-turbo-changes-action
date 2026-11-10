@@ -10,6 +10,8 @@ type Inputs = {
 	mccClientSecret: string;
 	mccOrganization: string;
 	mccProject: string;
+	fallbackReference?: string;
+	allowComponentNotFound: boolean;
 };
 
 /**
@@ -38,11 +40,29 @@ export async function run(): Promise<void> {
 			const commitHash = await client.getLatestVersion(
 				pkgConfig.name,
 				inputs.branch,
+				inputs.allowComponentNotFound,
 			);
 
-			const affectedPackages = commitHash
-				? await checkForChanges(pkgConfig, commitHash)
-				: [];
+			// We default to an empty array for affected packages. This indicates that no changes were detected.
+			let affectedPackages: string[] = [];
+
+			if (commitHash) {
+				// If a commit hash is found, we can check for changes since this commit.
+				affectedPackages = await checkForChanges(pkgConfig, commitHash);
+			} else if (
+				inputs.fallbackReference &&
+				inputs.fallbackReference !== inputs.branch
+			) {
+				// When a fallback reference is given (this can be a branch name, a commit or a git tag),
+				// we can check for changes using this reference instead.
+				affectedPackages = await checkForChanges(
+					pkgConfig,
+					inputs.fallbackReference,
+				);
+			} else if (inputs.allowComponentNotFound) {
+				// If no commit hash is found and no fallback reference is given, we assume the package has changed.
+				affectedPackages = [pkgConfig.scope];
+			}
 
 			for (const pkg of affectedPackages) {
 				if (!result.includes(pkg)) {
@@ -68,5 +88,7 @@ const readInputs = (): Inputs => {
 		mccClientSecret: core.getInput("mcc_client_secret"),
 		mccOrganization: core.getInput("mcc_organization"),
 		mccProject: core.getInput("mcc_project"),
+		fallbackReference: core.getInput("fallback_reference"),
+		allowComponentNotFound: core.getBooleanInput("allow_component_not_found"),
 	};
 };

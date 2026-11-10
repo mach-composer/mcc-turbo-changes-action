@@ -1,10 +1,19 @@
 import * as exec from "@actions/exec";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { gitCheck, turboCheck } from "./check";
 
+vi.mock("@actions/exec");
+
 describe("gitCheck", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	it("gitCheck", async () => {
-		const spy = vi.spyOn(exec, "exec");
+		vi.mocked(exec.exec).mockImplementation((_cmd, _args, options) => {
+			options?.listeners?.stdout?.(Buffer.from("src/check.ts\n"));
+			return Promise.resolve(0);
+		});
 
 		const result = await gitCheck(
 			["src/check.ts", "src/check.test.ts"],
@@ -13,7 +22,7 @@ describe("gitCheck", () => {
 
 		expect(result).toBe(true);
 
-		expect(spy).toHaveBeenCalledWith(
+		expect(exec.exec).toHaveBeenCalledWith(
 			"git",
 			[
 				"diff",
@@ -33,13 +42,16 @@ describe("gitCheck", () => {
 	});
 
 	it("should handle undefined paths", async () => {
-		const spy = vi.spyOn(exec, "exec");
+		vi.mocked(exec.exec).mockImplementation((_cmd, _args, options) => {
+			options?.listeners?.stdout?.(Buffer.from("src/check.ts\n"));
+			return Promise.resolve(0);
+		});
 
 		const result = await gitCheck(undefined, "3f0ca33");
 
 		expect(result).toBe(true);
 
-		expect(spy).toHaveBeenCalledWith(
+		expect(exec.exec).toHaveBeenCalledWith(
 			"git",
 			["diff", "--name-only", "3f0ca33", "HEAD", "--"],
 			{

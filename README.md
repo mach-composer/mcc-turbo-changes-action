@@ -6,6 +6,20 @@ monorepo is modified and needs to be built and published.
 Under the hood it uses turborepo to determine if a package is modified since
 the last release published to MACH Composer Cloud.
 
+## Versions
+
+Always pin to a major version ref (e.g. `@v2`) — never reference `main`, as it
+can contain unreleased changes.
+
+| Ref   | Runtime | Notes                                                                              |
+| ----- | ------- | ---------------------------------------------------------------------------------- |
+| `@v2` | Node 24 | **Recommended.** Adds the `allow_component_not_found` input and updated tooling.    |
+| `@v1` | Node 20 | Previous stable release. Supports the `fallback_reference` input.                  |
+
+```yaml
+- uses: mach-composer/mcc-turbo-changes-action@v2
+```
+
 ## Usage
 
 ```yaml
@@ -15,7 +29,7 @@ steps:
     with:
       fetch-depth: 0
 
-  - uses: mach-composer/mcc-turbo-changes-action@v1
+  - uses: mach-composer/mcc-turbo-changes-action@v2
     id: changes
     with:
       mcc_client_id: ${{ secrets.MCC_CLIENT_ID }}

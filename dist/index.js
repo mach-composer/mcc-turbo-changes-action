@@ -17099,6 +17099,32 @@ function getInput(name, options) {
 	return val.trim();
 }
 /**
+* Gets the input value of the boolean type in the YAML 1.2 "core schema" specification.
+* Support boolean input list: `true | True | TRUE | false | False | FALSE` .
+* The return value is also in boolean type.
+* ref: https://yaml.org/spec/1.2/spec.html#id2804923
+*
+* @param     name     name of the input to get
+* @param     options  optional. See InputOptions.
+* @returns   boolean
+*/
+function getBooleanInput(name, options) {
+	const trueValue = [
+		"true",
+		"True",
+		"TRUE"
+	];
+	const falseValue = [
+		"false",
+		"False",
+		"FALSE"
+	];
+	const val = getInput(name, options);
+	if (trueValue.includes(val)) return true;
+	if (falseValue.includes(val)) return false;
+	throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}\nSupport boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+}
+/**
 * Sets the value of an output.
 *
 * @param     name     name of the output to set
@@ -17175,7 +17201,7 @@ const getTurboPlan = async (commitHash) => {
 	const nullStream = new stream.Writable({ write(_, __, cb) {
 		cb();
 	} });
-	const command = `pnpm turbo run build --filter="...[${commitHash}]" --dry=json`;
+	const command = `pnpm --silent turbo run build --filter="...[${commitHash}]" --dry=json`;
 	const options = {
 		env: {
 			TURBO_TELEMETRY_DISABLED: "1",
@@ -34000,11 +34026,15 @@ var Client = class {
 		this.token = token.accessToken;
 		return this.token;
 	};
-	getLatestVersion = async (component, branch) => {
+	getLatestVersion = async (component, branch, allowComponentNotFound) => {
 		const url = `https://api.mach.cloud/organizations/${this.credentials.organization}/projects/${this.credentials.project}/components/${component}/latest?branch=${branch}`;
 		console.log("Request info from " + url);
 		const response = await fetch(url, { headers: { Authorization: `Bearer ${await this.getToken()}` } });
 		if (!response.ok) {
+			if (response.status === 404 && allowComponentNotFound) {
+				console.warn(`Component ${component} not found in branch ${branch}. Continuing without it.`);
+				return null;
+			}
 			console.log(await response.text());
 			throw new Error("Failed to fetch latest version");
 		}
@@ -34031,8 +34061,11 @@ async function run() {
 		info("Checking for changes: \n" + inputs.config.packages.map((pkg) => ` - ${pkg.name}`).join("\n"));
 		for (const pkgConfig of inputs.config.packages) {
 			info(`Processing ${pkgConfig.name}`);
-			const commitHash = await client.getLatestVersion(pkgConfig.name, inputs.branch);
-			const affectedPackages = commitHash ? await checkForChanges(pkgConfig, commitHash) : [];
+			const commitHash = await client.getLatestVersion(pkgConfig.name, inputs.branch, inputs.allowComponentNotFound);
+			let affectedPackages = [];
+			if (commitHash) affectedPackages = await checkForChanges(pkgConfig, commitHash);
+			else if (inputs.fallbackReference && inputs.fallbackReference !== inputs.branch) affectedPackages = await checkForChanges(pkgConfig, inputs.fallbackReference);
+			else if (inputs.allowComponentNotFound) affectedPackages = [pkgConfig.scope];
 			for (const pkg of affectedPackages) if (!result.includes(pkg)) result.push(pkg);
 		}
 		setOutput("changes", result);
@@ -34048,7 +34081,9 @@ const readInputs = () => {
 		mccClientID: getInput("mcc_client_id"),
 		mccClientSecret: getInput("mcc_client_secret"),
 		mccOrganization: getInput("mcc_organization"),
-		mccProject: getInput("mcc_project")
+		mccProject: getInput("mcc_project"),
+		fallbackReference: getInput("fallback_reference"),
+		allowComponentNotFound: getBooleanInput("allow_component_not_found")
 	};
 };
 // src/index.ts
